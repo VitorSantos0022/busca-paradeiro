@@ -184,12 +184,13 @@
 
     <!-- SCRIPT LOGIC -->
     <script>
-        // CONFIGURAÇÃO DO SUPABASE
+        // CONFIGURAÇÃO DO SUPABASE (CORRIGIDA)
         // ⚠️ SUBSTITUA COM AS SUAS CREDENCIAIS DO SUPABASE
         const SUPABASE_URL = "https://lugixdejmgmwqntjujkg.supabase.co";
         const SUPABASE_KEY = "sb_publishable_-p2f6_jQjQyhV2oGtcZPmg_Yf1ugtKv";
         
-        const supabase = supabase.createClient(https://lugixdejmgmwqntjujkg.supabase.co, sb_publishable_-p2f6_jQjQyhV2oGtcZPmg_Yf1ugtKv);
+        // Mudamos o nome da variável abaixo para desatar o nó do erro de declaração repetida
+        const supabaseClient = supabase.createClient(https://lugixdejmgmwqntjujkg.supabase.co, sb_publishable_-p2f6_jQjQyhV2oGtcZPmg_Yf1ugtKv);
 
         let fotoBase64 = "";
 
@@ -201,7 +202,7 @@
             const erroEl = document.getElementById('loginErro');
 
             // Autenticação na nuvem usando Supabase Auth
-            const { data, error } = await supabase.auth.signInWithPassword({
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
                 email: email,
                 password: senha,
             });
@@ -218,7 +219,7 @@
         });
 
         function fazerLogout() {
-            supabase.auth.signOut();
+            supabaseClient.auth.signOut();
             document.getElementById('telaLogin').classList.remove('hidden');
             document.getElementById('conteudoApp').classList.add('hidden');
             document.getElementById('loginForm').reset();
@@ -265,7 +266,7 @@
             };
 
             try {
-                const { data, error } = await supabase.from('fichas').insert([dados]).select();
+                const { data, error } = await supabaseClient.from('fichas').insert([dados]).select();
                 
                 if (error) throw error;
 
@@ -303,7 +304,7 @@
             let onlineData = [];
 
             if (navigator.onLine) {
-                let rpcQuery = supabase.from('fichas').select('*');
+                let rpcQuery = supabaseClient.from('fichas').select('*');
 
                 // Aplica filtro de texto se houver caracteres digitados
                 if (query.length >= 2) {
@@ -421,7 +422,7 @@
 
         // Verifica se já existia sessão ativa ao entrar na página
         window.onload = async () => {
-            const { data } = await supabase.auth.getSession();
+            const { data } = await supabaseClient.auth.getSession();
             if (data?.session) {
                 document.getElementById('telaLogin').classList.add('hidden');
                 document.getElementById('conteudoApp').classList.remove('hidden');
