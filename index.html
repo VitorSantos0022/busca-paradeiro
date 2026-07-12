@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busca & Paradeiro - Cruz Vermelha PA</title>
+    <!-- Tailwind CSS para design limpo e rápido -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Biblioteca do Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Biblioteca para gerar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --cv-red: #D6001C;
+            --cv-dark-red: #B00017;
+        }
+        .bg-cv-red { background-color: var(--cv-red); }
+        .text-cv-red { color: var(--cv-red); }
+        .hover-cv-red:hover { background-color: var(--cv-dark-red); }
+    </style>
+</head>
+<body class="bg-[#F5F5F5] text-[#202020] font-sans antialiased pb-10">
+
+    <!-- CABEÇALHO -->
+    <header class="bg-cv-red text-white p-4 text-center shadow-md sticky top-0 z-50">
+        <h1 class="text-xl font-bold tracking-wide uppercase">Cruz Vermelha Brasileira</h1>
+        <p class="text-xs opacity-90">Filial do Estado do Pará | Busca & Paradeiro</p>
+    </header>
+
+    <main class="max-w-md mx-auto mt-4 px-4">
+        
+        <!-- SEÇÃO: NOVA FICHA -->
+        <section class="bg-white p-5 rounded-xl shadow-sm border border-[#D9D9D9]">
+            <div class="flex items-center gap-2 mb-4 border-b pb-2 border-[#D9D9D9]">
+                <span class="text-2xl">➕</span>
+                <h2 class="text-lg font-bold text-cv-red">Nova Ficha de Busca</h2>
+            </div>
+
+            <form id="fichaForm" class="space-y-4">
+                <!-- Metadados Automáticos / Posto -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600">Posto de Atendimento</label>
+                        <input type="text" id="posto" required class="w-full p-2 border border-[#D9D9D9] rounded bg-gray-50 focus:outline-none focus:border-red-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600">Cidade</label>
+                        <input type="text" id="cidade" value="Belém" required class="w-full p-2 border border-[#D9D9D9] rounded bg-gray-50 focus:outline-none focus:border-red-500 text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600">Nome da Criança</label>
+                    <input type="text" id="nome_crianca" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="col-span-1">
+                        <label class="block text-xs font-semibold uppercase text-gray-600">Idade</label>
+                        <input type="text" id="idade" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs font-semibold uppercase text-gray-600">Traje / Roupa</label>
+                        <input type="text" id="traje" placeholder="Ex: Camisa azul e bermuda" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-2 rounded border border-[#D9D9D9] space-y-2">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Filiação</p>
+                    <div>
+                        <label class="block text-xs text-gray-600">Nome do Pai</label>
+                        <input type="text" id="pai" class="w-full p-2 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600">Nome da Mãe</label>
+                        <input type="text" id="mae" required class="w-full p-2 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600">Endereço Residencial</label>
+                    <input type="text" id="endereco" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600">Bairro</label>
+                        <input type="text" id="bairro" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600">Telefone de Contato</label>
+                        <input type="tel" id="telefone" placeholder="(91) 99999-9999" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600">RG do Responsável</label>
+                        <input type="text" id="rg" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600">Nome do Responsável</label>
+                        <input type="text" id="responsavel" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600">Coordenador do Posto</label>
+                    <input type="text" id="coordenador" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
+                </div>
+
+                <!-- CÂMERA / GALERIA -->
+                <div class="bg-gray-50 p-3 rounded-lg border border-dashed border-gray-400 text-center">
+                    <label class="block text-xs font-bold uppercase text-gray-600 mb-2">📷 Foto da Criança (Opcional)</label>
+                    <input type="file" id="fotoInput" accept="image/*" capture="environment" class="hidden">
+                    <button type="button" onclick="document.getElementById('fotoInput').click()" class="bg-gray-600 text-white px-3 py-1.5 rounded text-xs font-semibold shadow hover:bg-gray-700 transition">
+                        Tirar Foto ou Galeria
+                    </button>
+                    <div id="previewContainer" class="mt-2 hidden flex justify-center">
+                        <img id="fotoPreview" src="" class="h-24 w-24 object-cover rounded-md border shadow-sm">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-cv-red hover-cv-red text-white font-bold py-3 px-4 rounded-lg shadow transition uppercase tracking-wider text-sm mt-2">
+                    💾 Salvar e Enviar Ficha
+                </button>
+            </form>
+        </section>
+
+        <!-- SEÇÃO: CONSULTA -->
+        <section class="bg-white p-5 rounded-xl shadow-sm border border-[#D9D9D9] mt-6">
+            <div class="flex items-center gap-2 mb-4 border-b pb-2 border-[#D9D9D9]">
+                <span class="text-2xl">📋</span>
+                <h2 class="text-lg font-bold text-cv-red">Consultar Fichas</h2>
+            </div>
+            
+            <input type="text" id="buscaInput" oninput="buscarFichas()" placeholder="🔎 Digite o nome, bairro ou telefone..." class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm mb-4">
+
+            <div id="listaFichas" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                <p class="text-center text-xs text-gray-400">Nenhuma busca realizada ou cadastrada offline.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        // CONFIGURAÇÃO DO SUPABASE
+        // ⚠️ SUBSTITUA COM AS SUAS CREDENCIAIS DO SUPABASE
+        const SUPABASE_URL = "https://lugixdejmgmwqntjujkg.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_-p2f6_jQjQyhV2oGtcZPmg_Yf1ugtKv";
+        
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let fotoBase64 = "";
+
+        // Conversão de imagem para String Base64 para salvar facilmente
+        document.getElementById('fotoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    fotoBase64 = event.target.result;
+                    document.getElementById('fotoPreview').src = fotoBase64;
+                    document.getElementById('previewContainer').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Evento de Envio do Formulário
+        document.getElementById('fichaForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const dados = {
+                nome_crianca: document.getElementById('nome_crianca').value,
+                idade: document.getElementById('idade').value,
+                traje: document.getElementById('traje').value,
+                pai: document.getElementById('pai').value,
+                mae: document.getElementById('mae').value,
+                endereco: document.getElementById('endereco').value,
+                bairro: document.getElementById('bairro').value,
+                telefone: document.getElementById('telefone').value,
+                rg: document.getElementById('rg').value,
+                responsavel: document.getElementById('responsavel').value,
+                coordenador: document.getElementById('coordenador').value,
+                posto: document.getElementById('posto').value,
+                cidade: document.getElementById('cidade').value,
+                foto: fotoBase64
+            };
+
+            try {
+                // Tenta enviar para o Supabase online
+                const { data, error } = await supabase.from('fichas').insert([dados]).select();
+                
+                if (error) throw error;
+
+                alert(`Sucesso! Ficha Nº ${data[0].numero} salva no banco de dados.`);
+                gerarPDF(data[0]); // Gera o PDF do documento salvo imediatamente
+                document.getElementById('fichaForm').reset();
+                document.getElementById('previewContainer').classList.add('hidden');
+                fotoBase64 = "";
+                buscarFichas();
+
+            } catch (err) {
+                console.warn("Modo Offline ativado: Salvando localmente.", err);
+                // Armazenamento offline se a internet cair
+                let locais = JSON.parse(localStorage.getItem('fichas_offline')) || [];
+                dados.numero = "OFF-" + Math.floor(Math.random() * 1000);
+                dados.data = new Date().toISOString().split('T')[0];
+                dados.hora = new Date().toLocaleTimeString();
+                locais.push(dados);
+                localStorage.setItem('fichas_offline', JSON.stringify(locais));
+
+                alert(`Modo Offline! Ficha ${dados.numero} salva no celular. Ela será sincronizada ou impressa localmente.`);
+                gerarPDF(dados);
+                document.getElementById('fichaForm').reset();
+                buscarFichas();
+            }
+        });
+
+        // Buscar fichas dinamicamente
+        async function buscarFichas() {
+            const query = document.getElementById('buscaInput').value;
+            const lista = document.getElementById('listaFichas');
+            lista.innerHTML = "";
+
+            // Mesclar dados locais offline para visualização
+            let offlineData = JSON.parse(localStorage.getItem('fichas_offline')) || [];
+            
+            let onlineData = [];
+            if(navigator.onLine && query.length > 2) {
+                const { data } = await supabase.from('fichas')
+                    .select('*')
+                    .or(`nome_crianca.ilike.%${query}%,bairro.ilike.%${query}%,telefone.ilike.%${query}%`);
+                onlineData = data || [];
+            }
+
+            const cadastradas = [...offlineData, ...onlineData];
+
+            if(cadastradas.length === 0) {
+                lista.innerHTML = '<p class="text-center text-xs text-gray-400">Nenhum registro encontrado.</p>';
+                return;
+            }
+
+            cadastradas.forEach(f => {
+                const div = document.createElement('div');
+                div.className = "p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs flex justify-between items-center shadow-xs";
+                div.innerHTML = `
+                    <div>
+                        <p class="font-bold text-gray-800">Nº ${f.numero} - ${f.nome_crianca}</p>
+                        <p class="text-gray-500">Bairro: ${f.bairro} | Data: ${f.data}</p>
+                    </div>
+                    <button onclick='baixarFichaExistente(${JSON.stringify(f)})' class="bg-cv-red text-white p-1.5 rounded font-semibold text-[10px]">PDF</button>
+                `;
+                lista.appendChild(div);
+            });
+        }
+
+        function baixarFichaExistente(ficha) {
+            gerarPDF(ficha);
+        }
+
+        // Função de Geração de PDF Oficial Cruz Vermelha
+        function gerarPDF(dados) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Layout idêntico ao formulário padrão solicitado
+            doc.setFillColor(214, 0, 28); // Vermelho Cruz Vermelha
+            doc.rect(10, 10, 190, 8, 'F');
+            
+            doc.setFont("Helvetica", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(255, 255, 255);
+            doc.text("CRUZ VERMELHA BRASILEIRA - FILIAL DO PARÁ", 15, 16);
+            
+            doc.setTextColor(32, 32, 32);
+            doc.setFontSize(14);
+            doc.text("FICHA DE BUSCA DE PARADEIRO", 10, 30);
+            doc.setFontSize(10);
+            doc.text(`Ficha Sequencial Nº: ${dados.numero}`, 150, 30);
+            
+            doc.line(10, 33, 200, 33); // Linha separadora
+
+            doc.setFont("Helvetica", "normal");
+            doc.text(`NOME DA CRIANÇA: ${dados.nome_crianca.toUpperCase()}`, 10, 45);
+            doc.text(`IDADE: ${dados.idade}`, 10, 55);
+            doc.text(`TRAJE: ${dados.traje}`, 10, 65);
+            
+            doc.setFont("Helvetica", "bold");
+            doc.text("FILIAÇÃO:", 10, 75);
+            doc.setFont("Helvetica", "normal");
+            doc.text(`PAI: ${dados.pai ? dados.pai.toUpperCase() : 'NÃO DECLARADO'}`, 20, 83);
+            doc.text(`MÃE: ${dados.mae.toUpperCase()}`, 20, 91);
+            
+            doc.text(`ENDEREÇO: ${dados.endereco}`, 10, 103);
+            doc.text(`BAIRRO: ${dados.bairro}`, 10, 113);
+            doc.text(`FONE: ${dados.telefone}`, 130, 113);
+            
+            doc.text(`${dados.cidade.toUpperCase()}: ${dados.data} às ${dados.hora}`, 10, 125);
+            
+            doc.text("____________________________________________________________", 10, 145);
+            doc.text(`COORDENADOR DO POSTO: ${dados.coordenador.toUpperCase()}`, 10, 151);
+            doc.text(`POSTO: ${dados.posto.toUpperCase()}`, 10, 157);
+
+            doc.text(`NÚMERO DA CARTEIRA DE IDENTIDADE DO RESPONSÁVEL: ${dados.rg}`, 10, 172);
+            doc.text("____________________________________________________________", 10, 185);
+            doc.text(`RESPONSÁVEL PELA CRIANÇA: ${dados.responsavel.toUpperCase()}`, 10, 191);
+            
+            // Texto Legal Padrão do Juizado solicitado
+            doc.setFontSize(9);
+            doc.setFont("Helvetica", "italic");
+            const textoJuizado = "Estamos encaminhando a Criança ou Adolescente acima ao representante do Juizado da Infância e da Juventude para que este tome as providências necessárias.";
+            doc.text(textoJuizado, 10, 210, { maxWidth: 180 });
+            
+            doc.setFont("Helvetica", "normal");
+            doc.text("______________________________________________________________", 10, 235);
+            doc.text("Representante do Juizado da Infância e da Juventude", 10, 241);
+
+            // Se possuir foto anexada, coloca no canto superior direito do PDF
+            if (dados.foto) {
+                try {
+                    doc.addImage(dados.foto, 'JPEG', 150, 40, 40, 40);
+                } catch(e) { console.error("Erro ao processar imagem no PDF", e); }
+            }
+
+            // Salva o PDF baixando direto no celular ou PC
+            doc.save(`Ficha_${dados.numero}_${dados.nome_crianca.replace(/ /g, "_")}.pdf`);
+        }
+
+        // Tenta carregar lista incial ao abrir o app
+        window.onload = () => { buscarFichas(); };
+    </script>
+</body>
+</html>
