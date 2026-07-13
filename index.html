@@ -61,12 +61,17 @@
             
             <!-- SEÇÃO: NOVA FICHA -->
             <section class="bg-white p-5 rounded-xl shadow-sm border border-[#D9D9D9]">
-                <div class="flex items-center gap-2 mb-4 border-b pb-2 border-[#D9D9D9]">
-                    <span class="text-2xl">➕</span>
-                    <h2 class="text-lg font-bold text-cv-red">Nova Ficha de Busca</h2>
+                <div class="flex items-center justify-between mb-4 border-b pb-2 border-[#D9D9D9]">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">➕</span>
+                        <h2 id="tituloForm" class="text-lg font-bold text-cv-red">Nova Ficha de Busca</h2>
+                    </div>
+                    <span id="badgeEdicao" class="hidden text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded uppercase">Editando</span>
                 </div>
 
                 <form id="fichaForm" class="space-y-4">
+                    <input type="hidden" id="editId"> <!-- Controle de Edição -->
+
                     <!-- Metadados Automáticos / Posto -->
                     <div class="grid grid-cols-2 gap-2">
                         <div>
@@ -79,31 +84,96 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold uppercase text-gray-600">Nome da Criança</label>
-                        <input type="text" id="nome_crianca" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-2">
+                    <!-- Dados da Criança -->
+                    <div class="grid grid-cols-4 gap-2">
+                        <div class="col-span-3">
+                            <label class="block text-xs font-semibold uppercase text-gray-600">Nome da Criança</label>
+                            <input type="text" id="nome_crianca" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
+                        </div>
                         <div class="col-span-1">
                             <label class="block text-xs font-semibold uppercase text-gray-600">Idade</label>
                             <input type="text" id="idade" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
                         </div>
-                        <div class="col-span-2">
-                            <label class="block text-xs font-semibold uppercase text-gray-600">Traje / Roupa</label>
-                            <input type="text" id="traje" placeholder="Ex: Camisa azul e bermuda" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
+                    </div>
+
+                    <!-- ⏱️ CONTROLE DE FLUXO HORÁRIO (RECEBIMENTO E ENTREGA) -->
+                    <div class="bg-gray-50 p-3 rounded-lg border border-[#D9D9D9] space-y-3">
+                        <p class="text-xs font-bold text-cv-red uppercase tracking-wider border-b pb-1">⏱️ Controle de Tempo</p>
+                        
+                        <!-- Recebimento (Automático / Editável) -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-semibold uppercase text-gray-500">Data Recebimento</label>
+                                <input type="date" id="data_recebimento" required class="w-full p-1.5 border border-[#D9D9D9] rounded bg-white text-xs">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-semibold uppercase text-gray-500">Hora Recebimento</label>
+                                <input type="time" id="hora_recebimento" required class="w-full p-1.5 border border-[#D9D9D9] rounded bg-white text-xs">
+                            </div>
+                        </div>
+
+                        <!-- Entrega (Opcional) -->
+                        <div class="grid grid-cols-2 gap-2 pt-1 border-t border-gray-200">
+                            <div>
+                                <label class="block text-[10px] font-semibold uppercase text-gray-500">Data Entrega (Opcional)</label>
+                                <input type="date" id="data_entrega" class="w-full p-1.5 border border-[#D9D9D9] rounded bg-white text-xs">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-semibold uppercase text-gray-500">Hora Entrega (Opcional)</label>
+                                <input type="time" id="hora_entrega" class="w-full p-1.5 border border-[#D9D9D9] rounded bg-white text-xs">
+                            </div>
                         </div>
                     </div>
 
-                    <div class="bg-gray-50 p-2 rounded border border-[#D9D9D9] space-y-2">
-                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Filiação</p>
+                    <!-- 👥 SEÇÃO RESPONSÁVEL UNIFICADO -->
+                    <div class="bg-gray-50 p-3 rounded-lg border border-[#D9D9D9] space-y-3">
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider border-b pb-1">👥 Dados do Responsável</p>
+                        
                         <div>
-                            <label class="block text-xs text-gray-600">Nome do Pai</label>
-                            <input type="text" id="pai" class="w-full p-2 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-sm">
+                            <label class="block text-xs text-gray-600 font-semibold">Nome do Responsável</label>
+                            <input type="text" id="nome_responsavel" placeholder="Quem está com/busca a criança" required class="w-full p-2 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-sm">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs text-gray-600 font-semibold">Vínculo/Parentesco</label>
+                                <select id="vinculo_responsavel" onchange="verificarOutroVinculo()" class="w-full p-2 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-xs">
+                                    <option value="Mãe">Mãe</option>
+                                    <option value="Pai">Pai</option>
+                                    <option value="Avó">Avó</option>
+                                    <option value="Avô">Avô</option>
+                                    <option value="Tia">Tia</option>
+                                    <option value="Tio">Tio</option>
+                                    <option value="Irmã">Irmã</option>
+                                    <option value="Irmão">Irmão</option>
+                                    <option value="Madrasta">Madrasta</option>
+                                    <option value="Padrasto">Padrasto</option>
+                                    <option value="Responsável Legal">Responsável Legal</option>
+                                    <option value="Outro">Outro</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-600 font-semibold">Doc. Identidade (RG)</label>
+                                <input type="text" id="rg" placeholder="RG do responsável" required class="w-full p-2 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-sm">
+                            </div>
+                        </div>
+
+                        <!-- Campo extra oculto para "Outro" -->
+                        <div id="campoOutroVinculo" class="hidden">
+                            <label class="block text-xs text-red-600 font-semibold">Especifique o Parentesco</label>
+                            <input type="text" id="outro_vinculo" placeholder="Ex: Primo, Vizinho, etc." class="w-full p-2 border border-red-300 rounded bg-white focus:outline-none text-sm">
+                        </div>
+                    </div>
+
+                    <!-- Contatos e Localização -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-600">Bairro</label>
+                            <input type="text" id="bairro" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-600">Nome da Mãe</label>
-                            <input type="text" id="mae" required class="w-full p-2 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-sm">
+                            <label class="block text-xs font-semibold uppercase text-gray-600">Telefone Contato</label>
+                            <input type="tel" id="telefone" placeholder="(91) 99999-9999" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
                         </div>
                     </div>
 
@@ -112,31 +182,16 @@
                         <input type="text" id="endereco" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
                     </div>
 
+                    <!-- Assinaturas e Posto -->
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-xs font-semibold uppercase text-gray-600">Bairro</label>
-                            <input type="text" id="bairro" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
+                            <label class="block text-xs font-semibold uppercase text-gray-600">Responsável p/ Ficha</label>
+                            <input type="text" id="responsavel" required placeholder="Voluntário de entrega" class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold uppercase text-gray-600">Telefone de Contato</label>
-                            <input type="tel" id="telefone" placeholder="(91) 99999-9999" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
+                            <label class="block text-xs font-semibold uppercase text-gray-600">Coordenador Posto</label>
+                            <input type="text" id="coordenador" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
                         </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-xs font-semibold uppercase text-gray-600">RG do Responsável</label>
-                            <input type="text" id="rg" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold uppercase text-gray-600">Nome do Responsável</label>
-                            <input type="text" id="responsavel" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold uppercase text-gray-600">Coordenador do Posto</label>
-                        <input type="text" id="coordenador" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
                     </div>
 
                     <!-- CÂMERA / GALERIA -->
@@ -151,13 +206,18 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-cv-red hover-cv-red text-white font-bold py-3 px-4 rounded-lg shadow transition uppercase tracking-wider text-sm mt-2">
-                        💾 Salvar e Enviar Ficha
-                    </button>
+                    <div class="flex gap-2">
+                        <button type="submit" class="flex-1 bg-cv-red hover-cv-red text-white font-bold py-3 px-4 rounded-lg shadow transition uppercase tracking-wider text-sm mt-2">
+                            💾 Salvar Ficha
+                        </button>
+                        <button type="button" id="btnCancelarEdicao" onclick="cancelarEdicao()" class="hidden bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg shadow transition text-sm mt-2">
+                            Cancelar
+                        </button>
+                    </div>
                 </form>
             </section>
 
-            <!-- SEÇÃO: CONSULTA (ESTILO GOOGLE FORMS) -->
+            <!-- SEÇÃO: HISTÓRICO / CONSULTA -->
             <section class="bg-white p-5 rounded-xl shadow-sm border border-[#D9D9D9] mt-6">
                 <div class="flex items-center gap-2 mb-4 border-b pb-2 border-[#D9D9D9]">
                     <span class="text-2xl">📋</span>
@@ -166,17 +226,17 @@
                 
                 <!-- Filtros Combinados -->
                 <div class="space-y-2 mb-4 bg-gray-50 p-2.5 rounded border border-[#D9D9D9]">
-                    <input type="text" id="buscaInput" oninput="buscarFichas()" placeholder="🔎 Nome, bairro ou telefone..." class="w-full p-2 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-xs">
+                    <input type="text" id="buscaInput" oninput="buscarFichas()" placeholder="🔎 Nome, responsável, telefone ou bairro..." class="w-full p-2 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-xs">
                     
                     <div class="flex gap-2 items-center">
-                        <label class="text-[11px] font-bold text-gray-500 uppercase whitespace-nowrap">Filtrar por Data:</label>
+                        <label class="text-[11px] font-bold text-gray-500 uppercase whitespace-nowrap">Por Data:</label>
                         <input type="date" id="filtroData" onchange="buscarFichas()" class="w-full p-1.5 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-xs">
                         <button onclick="limparFiltroData()" class="text-xs text-gray-500 hover:text-red-500 px-1 font-bold">✖</button>
                     </div>
                 </div>
 
-                <div id="listaFichas" class="space-y-3 max-h-80 overflow-y-auto pr-1">
-                    <p class="text-center text-xs text-gray-400">Nenhuma busca realizada ou cadastrada offline.</p>
+                <div id="listaFichas" class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                    <p class="text-center text-xs text-gray-400">Carregando registros...</p>
                 </div>
             </section>
         </main>
@@ -185,6 +245,7 @@
     <!-- SCRIPT LOGIC -->
     <script>
         // CONFIGURAÇÃO DO SUPABASE
+        // ⚠️ SUBSTITUA COM AS SUAS CREDENCIAIS DO SUPABASE
         const SUPABASE_URL = "https://lugixdejmgmwqntjujkg.supabase.co";
         const SUPABASE_KEY = "sb_publishable_-p2f6_jQjQyhV2oGtcZPmg_Yf1ugtKv";
         
@@ -192,14 +253,35 @@
 
         let fotoBase64 = "";
 
-        // LOGIN VIA AUTENTICAÇÃO DO SUPABASE (SIMPLES E SEGURO)
+        // Inicializar com Data e Hora Atuais no Recebimento
+        function resetarDataHoraCampos() {
+            const agora = new Date();
+            document.getElementById('data_recebimento').value = agora.toISOString().split('T')[0];
+            document.getElementById('hora_recebimento').value = agora.toTimeString().split(' ')[0].substring(0,5);
+            document.getElementById('data_entrega').value = "";
+            document.getElementById('hora_entrega').value = "";
+        }
+
+        // Mostrar campo "Outro" no Vínculo Familiar
+        function verificarOutroVinculo() {
+            const vinculo = document.getElementById('vinculo_responsavel').value;
+            const divOutro = document.getElementById('campoOutroVinculo');
+            if (vinculo === "Outro") {
+                divOutro.classList.remove('hidden');
+                document.getElementById('outro_vinculo').setAttribute('required', 'required');
+            } else {
+                divOutro.classList.add('hidden');
+                document.getElementById('outro_vinculo').removeAttribute('required');
+            }
+        }
+
+        // LOGIN VIA AUTENTICAÇÃO
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
             const senha = document.getElementById('loginSenha').value;
             const erroEl = document.getElementById('loginErro');
 
-            // Autenticação na nuvem usando Supabase Auth
             const { data, error } = await supabaseClient.auth.signInWithPassword({
                 email: email,
                 password: senha,
@@ -212,7 +294,8 @@
                 erroEl.classList.add('hidden');
                 document.getElementById('telaLogin').classList.add('hidden');
                 document.getElementById('conteudoApp').classList.remove('hidden');
-                buscarFichas(); // Carrega os dados após login bem-sucedido
+                resetarDataHoraCampos();
+                buscarFichas();
             }
         });
 
@@ -228,7 +311,7 @@
             buscarFichas();
         }
 
-        // Conversão de imagem para String Base64 para salvar facilmente
+        // Conversão de Imagem
         document.getElementById('fotoInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -242,59 +325,87 @@
             }
         });
 
-        // Evento de Envio do Formulário
+        // Evento de Envio (Salvar/Editar Ficha)
         document.getElementById('fichaForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
+            const idEdicao = document.getElementById('editId').value;
             const dados = {
                 nome_crianca: document.getElementById('nome_crianca').value,
                 idade: document.getElementById('idade').value,
-                traje: document.getElementById('traje').value,
-                pai: document.getElementById('pai').value,
-                mae: document.getElementById('mae').value,
                 endereco: document.getElementById('endereco').value,
                 bairro: document.getElementById('bairro').value,
                 telefone: document.getElementById('telefone').value,
                 rg: document.getElementById('rg').value,
+                nome_responsavel: document.getElementById('nome_responsavel').value,
+                vinculo_responsavel: document.getElementById('vinculo_responsavel').value,
+                outro_vinculo: document.getElementById('vinculo_responsavel').value === "Outro" ? document.getElementById('outro_vinculo').value : null,
                 responsavel: document.getElementById('responsavel').value,
                 coordenador: document.getElementById('coordenador').value,
                 posto: document.getElementById('posto').value,
                 cidade: document.getElementById('cidade').value,
+                data_recebimento: document.getElementById('data_recebimento').value,
+                hora_recebimento: document.getElementById('hora_recebimento').value,
+                data_entrega: document.getElementById('data_entrega').value || null,
+                hora_entrega: document.getElementById('hora_entrega').value || null,
                 foto: fotoBase64
             };
 
             try {
-                const { data, error } = await supabaseClient.from('fichas').insert([dados]).select();
+                if (idEdicao) {
+                    const { error } = await supabaseClient.from('fichas').update(dados).eq('id', idEdicao);
+                    if (error) throw error;
+                    alert("Ficha de atendimento atualizada com sucesso!");
+                } else {
+                    const { data, error } = await supabaseClient.from('fichas').insert([dados]).select();
+                    if (error) throw error;
+                    alert(`Ficha Nº ${data[0].numero} gerada com sucesso.`);
+                    gerarPDF(data[0]);
+                }
                 
-                if (error) throw error;
-
-                alert(`Sucesso! Ficha Nº ${data[0].numero} salva no banco de dados.`);
-                gerarPDF(data[0]); 
-                document.getElementById('fichaForm').reset();
-                document.getElementById('previewContainer').classList.add('hidden');
-                fotoBase64 = "";
+                cancelarEdicao();
                 buscarFichas();
 
             } catch (err) {
                 console.warn("Modo Offline ativado: Salvando localmente.", err);
                 let locais = JSON.parse(localStorage.getItem('fichas_offline')) || [];
                 dados.numero = "OFF-" + Math.floor(Math.random() * 1000);
-                dados.data = new Date().toISOString().split('T')[0];
-                dados.hora = new Date().toLocaleTimeString();
+                dados.data_recebimento = document.getElementById('data_recebimento').value;
+                dados.hora_recebimento = document.getElementById('hora_recebimento').value;
                 locais.push(dados);
                 localStorage.setItem('fichas_offline', JSON.stringify(locais));
 
                 alert(`Modo Offline! Ficha ${dados.numero} salva no celular.`);
                 gerarPDF(dados);
-                document.getElementById('fichaForm').reset();
+                cancelarEdicao();
                 buscarFichas();
             }
         });
 
-        // Buscar fichas dinamicamente (Com Filtro por Texto e Data)
+        // Função de Cálculo de Tempo em Atendimento
+        function calcularTempoAtendimento(dataRec, horaRec, dataEnt, horaEnt) {
+            if (!dataEnt || !horaEnt) return "Em atendimento";
+            try {
+                const rec = new Date(`${dataRec}T${horaRec.substring(0,5)}`);
+                const ent = new Date(`${dataEnt}T${horaEnt.substring(0,5)}`);
+                const diffMs = ent - rec;
+                if (diffMs < 0) return "Duração inválida";
+                
+                const totalMin = Math.floor(diffMs / 60000);
+                const horas = Math.floor(totalMin / 60);
+                const minutos = totalMin % 60;
+                
+                if (horas === 0) return `${minutos}min`;
+                return `${horas}h ${minutos}min`;
+            } catch (e) {
+                return "Erro no cálculo";
+            }
+        }
+
+        // Buscar Fichas Dinamicamente
         async function buscarFichas() {
             const query = document.getElementById('buscaInput').value;
-            const dataSelecionada = document.getElementById('filtroData').value;
+            const dataFiltro = document.getElementById('filtroData').value;
             const lista = document.getElementById('listaFichas');
             lista.innerHTML = "";
 
@@ -304,28 +415,25 @@
             if (navigator.onLine) {
                 let rpcQuery = supabaseClient.from('fichas').select('*');
 
-                // Aplica filtro de texto se houver caracteres digitados
                 if (query.length >= 2) {
-                    rpcQuery = rpcQuery.or(`nome_crianca.ilike.%${query}%,bairro.ilike.%${query}%,telefone.ilike.%${query}%`);
+                    rpcQuery = rpcQuery.or(`nome_crianca.ilike.%${query}%,nome_responsavel.ilike.%${query}%,bairro.ilike.%${query}%,telefone.ilike.%${query}%`);
                 }
-
-                // Aplica filtro estrito de data igual ao Google Forms
-                if (dataSelecionada) {
-                    rpcQuery = rpcQuery.eq('data', dataSelecionada);
+                if (dataFiltro) {
+                    rpcQuery = rpcQuery.eq('data_recebimento', dataFiltro);
                 }
 
                 const { data } = await rpcQuery.order('id', { ascending: false });
                 onlineData = data || [];
             }
 
-            // Filtragem local dos dados offline caso necessário
-            if (dataSelecionada) {
-                offlineData = offlineData.filter(f => f.data === dataSelecionada);
+            // Filtro local offline se necessário
+            if (dataFiltro) {
+                offlineData = offlineData.filter(f => f.data_recebimento === dataFiltro);
             }
             if (query.length >= 2) {
                 offlineData = offlineData.filter(f => 
                     f.nome_crianca.toLowerCase().includes(query.toLowerCase()) || 
-                    f.bairro.toLowerCase().includes(query.toLowerCase())
+                    f.nome_responsavel?.toLowerCase().includes(query.toLowerCase())
                 );
             }
 
@@ -337,24 +445,98 @@
             }
 
             cadastradas.forEach(f => {
+                const tempo = calcularTempoAtendimento(f.data_recebimento, f.hora_recebimento, f.data_entrega, f.hora_entrega);
+                const parentesco = f.vinculo_responsavel === "Outro" ? f.outro_vinculo : f.vinculo_responsavel;
+
                 const div = document.createElement('div');
-                div.className = "p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs flex justify-between items-center shadow-xs";
+                div.className = "p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs flex flex-col gap-2 shadow-xs";
                 div.innerHTML = `
-                    <div>
-                        <p class="font-bold text-gray-800">Nº ${f.numero} - ${f.nome_crianca}</p>
-                        <p class="text-gray-500">Bairro: ${f.bairro} | Data: ${f.data}</p>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-bold text-gray-800">Nº ${f.numero} - ${f.nome_crianca}</p>
+                            <p class="text-gray-500">Resp: ${f.nome_responsavel} (${parentesco})</p>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${f.data_entrega ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${f.data_entrega ? 'Entregue' : 'Em Atendimento'}
+                        </span>
                     </div>
-                    <button onclick='baixarFichaExistente(${JSON.stringify(f)})' class="bg-cv-red text-white p-1.5 rounded font-semibold text-[10px]">PDF</button>
+                    <div class="grid grid-cols-2 gap-1 text-[10px] text-gray-600 bg-white p-2 rounded border border-gray-100">
+                        <p>📥 Rec: ${f.data_recebimento} às ${f.hora_recebimento.substring(0,5)}</p>
+                        <p>📤 Ent: ${f.data_entrega ? `${f.data_entrega} às ${f.hora_entrega.substring(0,5)}` : 'Pendente'}</p>
+                        <p class="col-span-2 font-semibold text-cv-red border-t border-gray-100 pt-1 mt-1 flex justify-between">
+                            <span>Duração do atendimento:</span> <span>${tempo}</span>
+                        </p>
+                    </div>
+                    <div class="flex gap-1 justify-end">
+                        <button onclick='carregarFichaEdicao(${JSON.stringify(f)})' class="bg-amber-600 text-white px-2 py-1 rounded text-[10px] font-semibold shadow-xs">Editar</button>
+                        <button onclick='baixarFichaExistente(${JSON.stringify(f)})' class="bg-cv-red text-white px-2 py-1 rounded text-[10px] font-semibold shadow-xs">PDF</button>
+                    </div>
                 `;
                 lista.appendChild(div);
             });
+        }
+
+        // Editar ficha (Permite atualizar horários e entrega)
+        function carregarFichaEdicao(f) {
+            document.getElementById('editId').value = f.id;
+            document.getElementById('posto').value = f.posto;
+            document.getElementById('cidade').value = f.cidade;
+            document.getElementById('nome_crianca').value = f.nome_crianca;
+            document.getElementById('idade').value = f.idade;
+            document.getElementById('endereco').value = f.endereco;
+            document.getElementById('bairro').value = f.bairro;
+            document.getElementById('telefone').value = f.telefone;
+            document.getElementById('rg').value = f.rg;
+            document.getElementById('nome_responsavel').value = f.nome_responsavel || "";
+            document.getElementById('vinculo_responsavel').value = f.vinculo_responsavel || "Mãe";
+            document.getElementById('responsavel').value = f.responsavel;
+            document.getElementById('coordenador').value = f.coordenador;
+            
+            document.getElementById('data_recebimento').value = f.data_recebimento;
+            document.getElementById('hora_recebimento').value = f.hora_recebimento.substring(0,5);
+            document.getElementById('data_entrega').value = f.data_entrega || "";
+            document.getElementById('hora_entrega').value = f.hora_entrega ? f.hora_entrega.substring(0,5) : "";
+
+            if (f.vinculo_responsavel === "Outro") {
+                document.getElementById('campoOutroVinculo').classList.remove('hidden');
+                document.getElementById('outro_vinculo').value = f.outro_vinculo || "";
+            } else {
+                document.getElementById('campoOutroVinculo').classList.add('hidden');
+                document.getElementById('outro_vinculo').value = "";
+            }
+
+            if(f.foto) {
+                fotoBase64 = f.foto;
+                document.getElementById('fotoPreview').src = f.foto;
+                document.getElementById('previewContainer').classList.remove('hidden');
+            } else {
+                fotoBase64 = "";
+                document.getElementById('previewContainer').classList.add('hidden');
+            }
+
+            document.getElementById('tituloForm').textContent = "Alterar Registro";
+            document.getElementById('badgeEdicao').classList.remove('hidden');
+            document.getElementById('btnCancelarEdicao').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelarEdicao() {
+            document.getElementById('fichaForm').reset();
+            document.getElementById('editId').value = "";
+            document.getElementById('previewContainer').classList.add('hidden');
+            document.getElementById('campoOutroVinculo').classList.add('hidden');
+            fotoBase64 = "";
+            resetarDataHoraCampos();
+            document.getElementById('tituloForm').textContent = "Nova Ficha de Busca";
+            document.getElementById('badgeEdicao').classList.add('hidden');
+            document.getElementById('btnCancelarEdicao').classList.add('hidden');
         }
 
         function baixarFichaExistente(ficha) {
             gerarPDF(ficha);
         }
 
-        // Função de Geração de PDF Oficial Cruz Vermelha
+        // Função de Geração de PDF Oficial Atualizada
         function gerarPDF(dados) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -363,9 +545,9 @@
             doc.rect(10, 10, 190, 8, 'F');
             
             doc.setFont("Helvetica", "bold");
-            doc.setFontSize(12);
+            doc.setFontSize(11);
             doc.setTextColor(255, 255, 255);
-            doc.text("CRUZ VERMELHA BRASILEIRA - FILIAL DO PARÁ", 15, 16);
+            doc.text("CRUZ VERMELHA BRASILEIRA - FILIAL DO ESTADO DO PARÁ", 15, 16);
             
             doc.setTextColor(32, 32, 32);
             doc.setFontSize(14);
@@ -376,54 +558,69 @@
             doc.line(10, 33, 200, 33); 
 
             doc.setFont("Helvetica", "normal");
-            doc.text(`NOME DA CRIANÇA: ${dados.nome_crianca.toUpperCase()}`, 10, 45);
-            doc.text(`IDADE: ${dados.idade}`, 10, 55);
-            doc.text(`TRAJE: ${dados.traje}`, 10, 65);
+            doc.text(`NOME DA CRIANÇA: ${dados.nome_crianca.toUpperCase()}`, 10, 43);
+            doc.text(`IDADE: ${dados.idade}`, 10, 51);
             
             doc.setFont("Helvetica", "bold");
-            doc.text("FILIAÇÃO:", 10, 75);
+            doc.text("RESPONSÁVEL / TUTOR:", 10, 61);
             doc.setFont("Helvetica", "normal");
-            doc.text(`PAI: ${dados.pai ? dados.pai.toUpperCase() : 'NÃO DECLARADO'}`, 20, 83);
-            doc.text(`MÃE: ${dados.mae.toUpperCase()}`, 20, 91);
-            
-            doc.text(`ENDEREÇO: ${dados.endereco}`, 10, 103);
-            doc.text(`BAIRRO: ${dados.bairro}`, 10, 113);
-            doc.text(`FONE: ${dados.telefone}`, 130, 113);
-            
-            doc.text(`${dados.cidade.toUpperCase()}: ${dados.data} às ${dados.hora}`, 10, 125);
-            
-            doc.text("____________________________________________________________", 10, 145);
-            doc.text(`COORDENADOR DO POSTO: ${dados.coordenador.toUpperCase()}`, 10, 151);
-            doc.text(`POSTO: ${dados.posto.toUpperCase()}`, 10, 157);
+            const parentesco = dados.vinculo_responsavel === "Outro" ? dados.outro_vinculo : dados.vinculo_responsavel;
+            doc.text(`NOME: ${dados.nome_responsavel.toUpperCase()}`, 20, 68);
+            doc.text(`VÍNCULO/PARENTESCO: ${parentesco.toUpperCase()}`, 20, 75);
+            doc.text(`NÚMERO DA CARTEIRA DE IDENTIDADE (RG): ${dados.rg}`, 20, 82);
 
-            doc.text(`NÚMERO DA CARTEIRA DE IDENTIDADE DO RESPONSÁVEL: ${dados.rg}`, 10, 172);
-            doc.text("____________________________________________________________", 10, 185);
-            doc.text(`RESPONSÁVEL PELA CRIANÇA: ${dados.responsavel.toUpperCase()}`, 10, 191);
+            doc.text(`ENDEREÇO RESIDENCIAL: ${dados.endereco.toUpperCase()}`, 10, 93);
+            doc.text(`BAIRRO: ${dados.bairro.toUpperCase()}`, 10, 100);
+            doc.text(`TELEFONE DE CONTATO: ${dados.telefone}`, 120, 100);
+            
+            // Controle de Tempos no PDF
+            doc.line(10, 106, 200, 106);
+            doc.setFont("Helvetica", "bold");
+            doc.text("CONTROLE DE TEMPO EM ATENDIMENTO", 10, 113);
+            doc.setFont("Helvetica", "normal");
+            doc.text(`Horário de Recebimento da Criança: ${dados.data_recebimento} às ${dados.hora_recebimento.substring(0,5)}`, 10, 120);
+            
+            const entregaStr = dados.data_entrega ? `${dados.data_entrega} às ${dados.hora_entrega.substring(0,5)}` : 'PENDENTE (CRIANÇA SOB OS CUIDADOS DO POSTO)';
+            doc.text(`Horário de Entrega ao Responsável: ${entregaStr}`, 10, 127);
+            
+            const tempo = calcularTempoAtendimento(dados.data_recebimento, dados.hora_recebimento, dados.data_entrega, dados.hora_entrega);
+            doc.setFont("Helvetica", "bold");
+            doc.text(`Tempo Total em Atendimento no Posto: ${tempo.toUpperCase()}`, 10, 134);
+            doc.setFont("Helvetica", "normal");
+
+            doc.text(`${dados.cidade.toUpperCase()}: ${dados.data_recebimento}`, 10, 146);
+            
+            doc.text("____________________________________________________________", 10, 163);
+            doc.text(`COORDENADOR DO POSTO: ${dados.coordenador.toUpperCase()}`, 10, 169);
+            doc.text(`POSTO: ${dados.posto.toUpperCase()}`, 10, 175);
+
+            doc.text("____________________________________________________________", 10, 192);
+            doc.text(`VOLUNTÁRIO RESPONSÁVEL PELA FICHA: ${dados.responsavel.toUpperCase()}`, 10, 198);
             
             doc.setFontSize(9);
             doc.setFont("Helvetica", "italic");
             const textoJuizado = "Estamos encaminhando a Criança ou Adolescente acima ao representante do Juizado da Infância e da Juventude para que este tome as providências necessárias.";
-            doc.text(textoJuizado, 10, 210, { maxWidth: 180 });
+            doc.text(textoJuizado, 10, 215, { maxWidth: 180 });
             
             doc.setFont("Helvetica", "normal");
-            doc.text("______________________________________________________________", 10, 235);
-            doc.text("Representante do Juizado da Infância e da Juventude", 10, 241);
+            doc.text("______________________________________________________________", 10, 238);
+            doc.text("Representante do Juizado da Infância e da Juventude", 10, 244);
 
             if (dados.foto) {
                 try {
-                    doc.addImage(dados.foto, 'JPEG', 150, 40, 40, 40);
+                    doc.addImage(dados.foto, 'JPEG', 150, 38, 40, 40);
                 } catch(e) { console.error("Erro ao processar imagem no PDF", e); }
             }
 
             doc.save(`Ficha_${dados.numero}_${dados.nome_crianca.replace(/ /g, "_")}.pdf`);
         }
 
-        // Verifica se já existia sessão ativa ao entrar na página
         window.onload = async () => {
             const { data } = await supabaseClient.auth.getSession();
             if (data?.session) {
                 document.getElementById('telaLogin').classList.add('hidden');
                 document.getElementById('conteudoApp').classList.remove('hidden');
+                resetarDataHoraCampos();
                 buscarFichas();
             }
         };
