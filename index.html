@@ -4,11 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Busca & Paradeiro - Cruz Vermelha PA</title>
-    <!-- Tailwind CSS para design limpo e rápido -->
+    <!-- Manifest para PWA (Transformar em App) -->
+    <meta name="theme-color" content="#D6001C">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Busca & Paradeiro CV">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Biblioteca do Supabase -->
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Biblioteca para gerar PDF -->
+    <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
@@ -22,12 +28,12 @@
 </head>
 <body class="bg-[#F5F5F5] text-[#202020] font-sans antialiased pb-10">
 
-    <!-- TELA DE LOGIN (BLOQUEIO SEGURO) -->
+    <!-- TELA DE LOGIN -->
     <div id="telaLogin" class="fixed inset-0 bg-gray-100 flex items-center justify-center z-50 px-4">
         <div class="bg-white p-6 rounded-xl shadow-md border border-[#D9D9D9] w-full max-w-sm text-center">
             <div class="w-16 h-16 bg-cv-red text-white flex items-center justify-center rounded-full mx-auto mb-3 text-2xl font-bold">＋</div>
             <h2 class="text-lg font-bold text-cv-red uppercase tracking-wide">Cruz Vermelha Brasileira</h2>
-            <p class="text-xs text-gray-500 mb-4">Polo Bragança | Busca & Paradeiro</p>
+            <p class="text-xs text-gray-500 mb-4">Filial do Pará | Acesso Restrito</p>
             
             <form id="loginForm" class="space-y-3 text-left">
                 <div>
@@ -46,20 +52,20 @@
         </div>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL DO APP (FICA OCULTO ATÉ FAZER LOGIN) -->
+    <!-- CONTEÚDO PRINCIPAL -->
     <div id="conteudoApp" class="hidden">
         <!-- CABEÇALHO -->
         <header class="bg-cv-red text-white p-4 text-center shadow-md sticky top-0 z-40 flex justify-between items-center">
             <div class="text-left">
                 <h1 class="text-md font-bold tracking-wide uppercase">Cruz Vermelha Brasileira</h1>
-                <p class="text-[10px] opacity-90">Polo Bragança Pará | Busca & Paradeiro</p>
+                <p class="text-[10px] opacity-90">Filial do Estado do Pará | Busca & Paradeiro</p>
             </div>
             <button onclick="fazerLogout()" class="text-xs bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded">Sair</button>
         </header>
 
         <main class="max-w-md mx-auto mt-4 px-4">
             
-            <!-- SEÇÃO: NOVA FICHA -->
+            <!-- SEÇÃO: FORMULÁRIO -->
             <section class="bg-white p-5 rounded-xl shadow-sm border border-[#D9D9D9]">
                 <div class="flex items-center justify-between mb-4 border-b pb-2 border-[#D9D9D9]">
                     <div class="flex items-center gap-2">
@@ -70,9 +76,10 @@
                 </div>
 
                 <form id="fichaForm" class="space-y-4">
-                    <input type="hidden" id="editId"> <!-- Controle de Edição -->
+                    <input type="hidden" id="editId">
+                    <input type="hidden" id="geolocalizacao_coords">
 
-                    <!-- Metadados Automáticos / Posto -->
+                    <!-- Metadados -->
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-xs font-semibold uppercase text-gray-600">Posto de Atendimento</label>
@@ -84,7 +91,7 @@
                         </div>
                     </div>
 
-                    <!-- Dados da Criança -->
+                    <!-- Criança -->
                     <div class="grid grid-cols-4 gap-2">
                         <div class="col-span-3">
                             <label class="block text-xs font-semibold uppercase text-gray-600">Nome da Criança</label>
@@ -96,11 +103,9 @@
                         </div>
                     </div>
 
-                    <!-- ⏱️ CONTROLE DE FLUXO HORÁRIO (RECEBIMENTO E ENTREGA) -->
+                    <!-- Tempos -->
                     <div class="bg-gray-50 p-3 rounded-lg border border-[#D9D9D9] space-y-3">
                         <p class="text-xs font-bold text-cv-red uppercase tracking-wider border-b pb-1">⏱️ Controle de Tempo</p>
-                        
-                        <!-- Recebimento (Automático / Editável) -->
                         <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-[10px] font-semibold uppercase text-gray-500">Data Recebimento</label>
@@ -111,8 +116,6 @@
                                 <input type="time" id="hora_recebimento" required class="w-full p-1.5 border border-[#D9D9D9] rounded bg-white text-xs">
                             </div>
                         </div>
-
-                        <!-- Entrega (Opcional) -->
                         <div class="grid grid-cols-2 gap-2 pt-1 border-t border-gray-200">
                             <div>
                                 <label class="block text-[10px] font-semibold uppercase text-gray-500">Data Entrega (Opcional)</label>
@@ -125,15 +128,13 @@
                         </div>
                     </div>
 
-                    <!-- 👥 SEÇÃO RESPONSÁVEL UNIFICADO -->
+                    <!-- Responsável -->
                     <div class="bg-gray-50 p-3 rounded-lg border border-[#D9D9D9] space-y-3">
                         <p class="text-xs font-bold text-gray-500 uppercase tracking-wider border-b pb-1">👥 Dados do Responsável</p>
-                        
                         <div>
                             <label class="block text-xs text-gray-600 font-semibold">Nome do Responsável</label>
                             <input type="text" id="nome_responsavel" placeholder="Quem está com/busca a criança" required class="w-full p-2 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-sm">
                         </div>
-
                         <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-xs text-gray-600 font-semibold">Vínculo/Parentesco</label>
@@ -153,19 +154,17 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs text-gray-600 font-semibold">Identidade (RG) ou CPF</label>
+                                <label class="block text-xs text-gray-600 font-semibold">Doc. Identidade (RG)</label>
                                 <input type="text" id="rg" placeholder="RG do responsável" required class="w-full p-2 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-sm">
                             </div>
                         </div>
-
-                        <!-- Campo extra oculto para "Outro" -->
                         <div id="campoOutroVinculo" class="hidden">
                             <label class="block text-xs text-red-600 font-semibold">Especifique o Parentesco</label>
-                            <input type="text" id="outro_vinculo" placeholder="Ex: Primo, Vizinho, etc." class="w-full p-2 border border-red-300 rounded bg-white focus:outline-none text-sm">
+                            <input type="text" id="outro_vinculo" placeholder="Ex: Primo, Vizinho" class="w-full p-2 border border-red-300 rounded bg-white focus:outline-none text-sm">
                         </div>
                     </div>
 
-                    <!-- Contatos e Localização -->
+                    <!-- Endereço e Contatos -->
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-xs font-semibold uppercase text-gray-600">Bairro</label>
@@ -182,7 +181,6 @@
                         <input type="text" id="endereco" required class="w-full p-2 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
                     </div>
 
-                    <!-- Assinaturas e Posto -->
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-xs font-semibold uppercase text-gray-600">Responsável p/ Ficha</label>
@@ -194,15 +192,21 @@
                         </div>
                     </div>
 
-                    <!-- CÂMERA / GALERIA -->
+                    <!-- 📍 FOTO COM GEOLOCALIZAÇÃO AUTOMÁTICA -->
                     <div class="bg-gray-50 p-3 rounded-lg border border-dashed border-gray-400 text-center">
-                        <label class="block text-xs font-bold uppercase text-gray-600 mb-2">📷 Foto da Criança (Opcional)</label>
+                        <label class="block text-xs font-bold uppercase text-gray-600 mb-1">📷 Foto com Geolocalização GPS</label>
+                        <p class="text-[10px] text-gray-500 mb-2">A imagem receberá um carimbo inviolável de GPS, data e hora.</p>
+                        
                         <input type="file" id="fotoInput" accept="image/*" capture="environment" class="hidden">
-                        <button type="button" onclick="document.getElementById('fotoInput').click()" class="bg-gray-600 text-white px-3 py-1.5 rounded text-xs font-semibold shadow hover:bg-gray-700 transition">
-                            Tirar Foto ou Galeria
+                        <button type="button" onclick="capturarFotoComGPS()" class="bg-gray-700 text-white px-3 py-2 rounded text-xs font-semibold shadow hover:bg-gray-800 transition flex items-center justify-center gap-1 mx-auto">
+                            <span>📍</span> Tirar Foto com GPS
                         </button>
-                        <div id="previewContainer" class="mt-2 hidden flex justify-center">
-                            <img id="fotoPreview" src="" class="h-24 w-24 object-cover rounded-md border shadow-sm">
+                        
+                        <div id="statusGps" class="text-[10px] text-amber-700 mt-1 font-semibold hidden">Obtendo coordenadas do satélite...</div>
+
+                        <div id="previewContainer" class="mt-3 hidden flex flex-col items-center">
+                            <img id="fotoPreview" src="" class="h-44 w-full object-contain rounded-md border shadow-sm bg-black">
+                            <p class="text-[10px] text-green-700 font-bold mt-1">✓ Foto Carimbada com Sucesso</p>
                         </div>
                     </div>
 
@@ -217,14 +221,13 @@
                 </form>
             </section>
 
-            <!-- SEÇÃO: HISTÓRICO / CONSULTA -->
+            <!-- HISTÓRICO -->
             <section class="bg-white p-5 rounded-xl shadow-sm border border-[#D9D9D9] mt-6">
                 <div class="flex items-center gap-2 mb-4 border-b pb-2 border-[#D9D9D9]">
                     <span class="text-2xl">📋</span>
                     <h2 class="text-lg font-bold text-cv-red">Histórico de Fichas</h2>
                 </div>
                 
-                <!-- Filtros Combinados -->
                 <div class="space-y-2 mb-4 bg-gray-50 p-2.5 rounded border border-[#D9D9D9]">
                     <input type="text" id="buscaInput" oninput="buscarFichas()" placeholder="🔎 Nome, responsável, telefone ou bairro..." class="w-full p-2 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-xs">
                     
@@ -244,16 +247,12 @@
 
     <!-- SCRIPT LOGIC -->
     <script>
-        // CONFIGURAÇÃO DO SUPABASE
-        // ⚠️ SUBSTITUA COM AS SUAS CREDENCIAIS DO SUPABASE
         const SUPABASE_URL = "https://lugixdejmgmwqntjujkg.supabase.co";
         const SUPABASE_KEY = "sb_publishable_-p2f6_jQjQyhV2oGtcZPmg_Yf1ugtKv";
-        
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let fotoBase64 = "";
 
-        // Inicializar com Data e Hora Atuais no Recebimento
         function resetarDataHoraCampos() {
             const agora = new Date();
             document.getElementById('data_recebimento').value = agora.toISOString().split('T')[0];
@@ -262,7 +261,6 @@
             document.getElementById('hora_entrega').value = "";
         }
 
-        // Mostrar campo "Outro" no Vínculo Familiar
         function verificarOutroVinculo() {
             const vinculo = document.getElementById('vinculo_responsavel').value;
             const divOutro = document.getElementById('campoOutroVinculo');
@@ -275,17 +273,89 @@
             }
         }
 
-        // LOGIN VIA AUTENTICAÇÃO
+        // 📍 CAPTURA DE FOTO COM CARIMBO DE GPS E DATA/HORA AUTOMÁTICOS
+        function capturarFotoComGPS() {
+            const statusGps = document.getElementById('statusGps');
+            statusGps.textContent = "Solicitando sinal de GPS e câmera...";
+            statusGps.classList.remove('hidden');
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude.toFixed(6);
+                    const lon = position.coords.longitude.toFixed(6);
+                    document.getElementById('geolocalizacao_coords').value = `${lat}, ${lon}`;
+                    statusGps.textContent = "Sinal de GPS obtido com sucesso!";
+
+                    // Abre a câmera
+                    document.getElementById('fotoInput').click();
+                },
+                (error) => {
+                    console.warn("GPS Indisponível/Negado:", error);
+                    statusGps.textContent = "GPS indisponível. A foto será salva apenas com Data/Hora.";
+                    document.getElementById('geolocalizacao_coords').value = "Sem Sinal GPS";
+                    document.getElementById('fotoInput').click();
+                },
+                { enableHighAccuracy: true, timeout: 7000 }
+            );
+        }
+
+        // Processa a Imagem no Canvas para "Desenhar" o Carimbo no rodapé
+        document.getElementById('fotoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+
+                        // Desenha a foto original
+                        ctx.drawImage(img, 0, 0);
+
+                        // Desenha a faixa preta no rodapé para o carimbo
+                        const alturaFaixa = Math.max(60, img.height * 0.08);
+                        ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+                        ctx.fillRect(0, img.height - alturaFaixa, img.width, alturaFaixa);
+
+                        // Configura o texto do Carimbo
+                        ctx.fillStyle = "#FFFFFF";
+                        const tamanhoFonte = Math.max(14, img.height * 0.022);
+                        ctx.font = `bold ${tamanhoFonte}px sans-serif`;
+
+                        const coords = document.getElementById('geolocalizacao_coords').value || "Sem GPS";
+                        const agora = new Date().toLocaleString('pt-BR');
+
+                        const textoLinha1 = `CRUZ VERMELHA BRASILEIRA - PA | ${agora}`;
+                        const textoLinha2 = `📍 LAT/LON: ${coords}`;
+
+                        ctx.fillText(textoLinha1, 15, img.height - (alturaFaixa * 0.55));
+                        ctx.fillStyle = "#FFCC00"; // Cor amarela para o GPS destacar
+                        ctx.fillText(textoLinha2, 15, img.height - (alturaFaixa * 0.18));
+
+                        // Converte a imagem com carimbo para Base64
+                        fotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
+                        document.getElementById('fotoPreview').src = fotoBase64;
+                        document.getElementById('previewContainer').classList.remove('hidden');
+                        document.getElementById('statusGps').classList.add('hidden');
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // LOGIN
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
             const senha = document.getElementById('loginSenha').value;
             const erroEl = document.getElementById('loginErro');
 
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
-                email: email,
-                password: senha,
-            });
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
 
             if (error) {
                 erroEl.textContent = "Acesso negado: " + error.message;
@@ -311,21 +381,7 @@
             buscarFichas();
         }
 
-        // Conversão de Imagem
-        document.getElementById('fotoInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    fotoBase64 = event.target.result;
-                    document.getElementById('fotoPreview').src = fotoBase64;
-                    document.getElementById('previewContainer').classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Evento de Envio (Salvar/Editar Ficha)
+        // SALVAR FICHA
         document.getElementById('fichaForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -348,6 +404,7 @@
                 hora_recebimento: document.getElementById('hora_recebimento').value,
                 data_entrega: document.getElementById('data_entrega').value || null,
                 hora_entrega: document.getElementById('hora_entrega').value || null,
+                geolocalizacao: document.getElementById('geolocalizacao_coords').value || null,
                 foto: fotoBase64
             };
 
@@ -355,34 +412,21 @@
                 if (idEdicao) {
                     const { error } = await supabaseClient.from('fichas').update(dados).eq('id', idEdicao);
                     if (error) throw error;
-                    alert("Ficha de atendimento atualizada com sucesso!");
+                    alert("Ficha atualizada com sucesso!");
                 } else {
                     const { data, error } = await supabaseClient.from('fichas').insert([dados]).select();
                     if (error) throw error;
-                    alert(`Ficha Nº ${data[0].numero} gerada com sucesso.`);
+                    alert(`Ficha Nº ${data[0].numero} salva com foto geolocalizada.`);
                     gerarPDF(data[0]);
                 }
-                
                 cancelarEdicao();
                 buscarFichas();
-
             } catch (err) {
-                console.warn("Modo Offline ativado: Salvando localmente.", err);
-                let locais = JSON.parse(localStorage.getItem('fichas_offline')) || [];
-                dados.numero = "OFF-" + Math.floor(Math.random() * 1000);
-                dados.data_recebimento = document.getElementById('data_recebimento').value;
-                dados.hora_recebimento = document.getElementById('hora_recebimento').value;
-                locais.push(dados);
-                localStorage.setItem('fichas_offline', JSON.stringify(locais));
-
-                alert(`Modo Offline! Ficha ${dados.numero} salva no celular.`);
-                gerarPDF(dados);
-                cancelarEdicao();
-                buscarFichas();
+                console.error(err);
+                alert("Erro ao conectar com a nuvem.");
             }
         });
 
-        // Função de Cálculo de Tempo em Atendimento
         function calcularTempoAtendimento(dataRec, horaRec, dataEnt, horaEnt) {
             if (!dataEnt || !horaEnt) return "Em atendimento";
             try {
@@ -402,54 +446,34 @@
             }
         }
 
-        // Buscar Fichas Dinamicamente
         async function buscarFichas() {
             const query = document.getElementById('buscaInput').value;
             const dataFiltro = document.getElementById('filtroData').value;
             const lista = document.getElementById('listaFichas');
             lista.innerHTML = "";
 
-            let offlineData = JSON.parse(localStorage.getItem('fichas_offline')) || [];
-            let onlineData = [];
+            let rpcQuery = supabaseClient.from('fichas').select('*');
 
-            if (navigator.onLine) {
-                let rpcQuery = supabaseClient.from('fichas').select('*');
-
-                if (query.length >= 2) {
-                    rpcQuery = rpcQuery.or(`nome_crianca.ilike.%${query}%,nome_responsavel.ilike.%${query}%,bairro.ilike.%${query}%,telefone.ilike.%${query}%`);
-                }
-                if (dataFiltro) {
-                    rpcQuery = rpcQuery.eq('data_recebimento', dataFiltro);
-                }
-
-                const { data } = await rpcQuery.order('id', { ascending: false });
-                onlineData = data || [];
-            }
-
-            // Filtro local offline se necessário
-            if (dataFiltro) {
-                offlineData = offlineData.filter(f => f.data_recebimento === dataFiltro);
-            }
             if (query.length >= 2) {
-                offlineData = offlineData.filter(f => 
-                    f.nome_crianca.toLowerCase().includes(query.toLowerCase()) || 
-                    f.nome_responsavel?.toLowerCase().includes(query.toLowerCase())
-                );
+                rpcQuery = rpcQuery.or(`nome_crianca.ilike.%${query}%,nome_responsavel.ilike.%${query}%,bairro.ilike.%${query}%`);
+            }
+            if (dataFiltro) {
+                rpcQuery = rpcQuery.eq('data_recebimento', dataFiltro);
             }
 
-            const cadastradas = [...offlineData, ...onlineData];
+            const { data } = await rpcQuery.order('id', { ascending: false });
 
-            if (cadastradas.length === 0) {
-                lista.innerHTML = '<p class="text-center text-xs text-gray-400">Nenhum registro encontrado para este filtro.</p>';
+            if (!data || data.length === 0) {
+                lista.innerHTML = '<p class="text-center text-xs text-gray-400">Nenhum registro encontrado.</p>';
                 return;
             }
 
-            cadastradas.forEach(f => {
+            data.forEach(f => {
                 const tempo = calcularTempoAtendimento(f.data_recebimento, f.hora_recebimento, f.data_entrega, f.hora_entrega);
                 const parentesco = f.vinculo_responsavel === "Outro" ? f.outro_vinculo : f.vinculo_responsavel;
 
                 const div = document.createElement('div');
-                div.className = "p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs flex flex-col gap-2 shadow-xs";
+                div.className = "p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs space-y-2";
                 div.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div>
@@ -464,19 +488,19 @@
                         <p>📥 Rec: ${f.data_recebimento} às ${f.hora_recebimento.substring(0,5)}</p>
                         <p>📤 Ent: ${f.data_entrega ? `${f.data_entrega} às ${f.hora_entrega.substring(0,5)}` : 'Pendente'}</p>
                         <p class="col-span-2 font-semibold text-cv-red border-t border-gray-100 pt-1 mt-1 flex justify-between">
-                            <span>Duração do atendimento:</span> <span>${tempo}</span>
+                            <span>Duração: ${tempo}</span>
+                            <span class="text-gray-400">📍 ${f.geolocalizacao || 'Sem GPS'}</span>
                         </p>
                     </div>
                     <div class="flex gap-1 justify-end">
-                        <button onclick='carregarFichaEdicao(${JSON.stringify(f)})' class="bg-amber-600 text-white px-2 py-1 rounded text-[10px] font-semibold shadow-xs">Editar</button>
-                        <button onclick='baixarFichaExistente(${JSON.stringify(f)})' class="bg-cv-red text-white px-2 py-1 rounded text-[10px] font-semibold shadow-xs">PDF</button>
+                        <button onclick='carregarFichaEdicao(${JSON.stringify(f)})' class="bg-amber-600 text-white px-2 py-1 rounded text-[10px] font-semibold">Editar</button>
+                        <button onclick='gerarPDF(${JSON.stringify(f)})' class="bg-cv-red text-white px-2 py-1 rounded text-[10px] font-semibold">PDF</button>
                     </div>
                 `;
                 lista.appendChild(div);
             });
         }
 
-        // Editar ficha (Permite atualizar horários e entrega)
         function carregarFichaEdicao(f) {
             document.getElementById('editId').value = f.id;
             document.getElementById('posto').value = f.posto;
@@ -491,27 +515,15 @@
             document.getElementById('vinculo_responsavel').value = f.vinculo_responsavel || "Mãe";
             document.getElementById('responsavel').value = f.responsavel;
             document.getElementById('coordenador').value = f.coordenador;
-            
             document.getElementById('data_recebimento').value = f.data_recebimento;
             document.getElementById('hora_recebimento').value = f.hora_recebimento.substring(0,5);
             document.getElementById('data_entrega').value = f.data_entrega || "";
             document.getElementById('hora_entrega').value = f.hora_entrega ? f.hora_entrega.substring(0,5) : "";
 
-            if (f.vinculo_responsavel === "Outro") {
-                document.getElementById('campoOutroVinculo').classList.remove('hidden');
-                document.getElementById('outro_vinculo').value = f.outro_vinculo || "";
-            } else {
-                document.getElementById('campoOutroVinculo').classList.add('hidden');
-                document.getElementById('outro_vinculo').value = "";
-            }
-
             if(f.foto) {
                 fotoBase64 = f.foto;
                 document.getElementById('fotoPreview').src = f.foto;
                 document.getElementById('previewContainer').classList.remove('hidden');
-            } else {
-                fotoBase64 = "";
-                document.getElementById('previewContainer').classList.add('hidden');
             }
 
             document.getElementById('tituloForm').textContent = "Alterar Registro";
@@ -532,11 +544,6 @@
             document.getElementById('btnCancelarEdicao').classList.add('hidden');
         }
 
-        function baixarFichaExistente(ficha) {
-            gerarPDF(ficha);
-        }
-
-        // Função de Geração de PDF Oficial Atualizada
         function gerarPDF(dados) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -573,46 +580,44 @@
             doc.text(`BAIRRO: ${dados.bairro.toUpperCase()}`, 10, 100);
             doc.text(`TELEFONE DE CONTATO: ${dados.telefone}`, 120, 100);
             
-            // Controle de Tempos no PDF
             doc.line(10, 106, 200, 106);
             doc.setFont("Helvetica", "bold");
-            doc.text("CONTROLE DE TEMPO EM ATENDIMENTO", 10, 113);
+            doc.text("CONTROLE DE TEMPO E GEOLOCALIZAÇÃO", 10, 113);
             doc.setFont("Helvetica", "normal");
-            doc.text(`Horário de Recebimento da Criança: ${dados.data_recebimento} às ${dados.hora_recebimento.substring(0,5)}`, 10, 120);
+            doc.text(`Horário de Recebimento: ${dados.data_recebimento} às ${dados.hora_recebimento.substring(0,5)}`, 10, 120);
             
-            const entregaStr = dados.data_entrega ? `${dados.data_entrega} às ${dados.hora_entrega.substring(0,5)}` : 'PENDENTE (CRIANÇA SOB OS CUIDADOS DO POSTO)';
-            doc.text(`Horário de Entrega ao Responsável: ${entregaStr}`, 10, 127);
+            const entregaStr = dados.data_entrega ? `${dados.data_entrega} às ${dados.hora_entrega.substring(0,5)}` : 'PENDENTE (SOB CUIDADOS DO POSTO)';
+            doc.text(`Horário de Entrega: ${entregaStr}`, 10, 127);
             
             const tempo = calcularTempoAtendimento(dados.data_recebimento, dados.hora_recebimento, dados.data_entrega, dados.hora_entrega);
             doc.setFont("Helvetica", "bold");
-            doc.text(`Tempo Total em Atendimento no Posto: ${tempo.toUpperCase()}`, 10, 134);
-            doc.setFont("Helvetica", "normal");
+            doc.text(`Tempo Total em Atendimento: ${tempo.toUpperCase()}`, 10, 134);
+            doc.text(`Coordenadas de GPS: ${dados.geolocalizacao || 'Registrado na foto'}`, 10, 141);
 
-            doc.text(`${dados.cidade.toUpperCase()}: ${dados.data_recebimento}`, 10, 146);
-            
-            doc.text("____________________________________________________________", 10, 163);
-            doc.text(`COORDENADOR DO POSTO: ${dados.coordenador.toUpperCase()}`, 10, 169);
-            doc.text(`POSTO: ${dados.posto.toUpperCase()}`, 10, 175);
-
-            doc.text("____________________________________________________________", 10, 192);
-            doc.text(`VOLUNTÁRIO RESPONSÁVEL PELA FICHA: ${dados.responsavel.toUpperCase()}`, 10, 198);
-            
-            doc.setFontSize(9);
-            doc.setFont("Helvetica", "italic");
-            const textoJuizado = "Estamos encaminhando a Criança ou Adolescente acima ao representante do Juizado da Infância e da Juventude para que este tome as providências necessárias.";
-            doc.text(textoJuizado, 10, 215, { maxWidth: 180 });
-            
             doc.setFont("Helvetica", "normal");
-            doc.text("______________________________________________________________", 10, 238);
-            doc.text("Representante do Juizado da Infância e da Juventude", 10, 244);
+            doc.text(`${dados.cidade.toUpperCase()}: ${dados.data_recebimento}`, 10, 151);
+            
+            doc.text("____________________________________________________________", 10, 168);
+            doc.text(`COORDENADOR DO POSTO: ${dados.coordenador.toUpperCase()}`, 10, 174);
+            doc.text(`POSTO: ${dados.posto.toUpperCase()}`, 10, 180);
+
+            doc.text("____________________________________________________________", 10, 197);
+            doc.text(`VOLUNTÁRIO RESPONSÁVEL: ${dados.responsavel.toUpperCase()}`, 10, 203);
 
             if (dados.foto) {
                 try {
-                    doc.addImage(dados.foto, 'JPEG', 150, 38, 40, 40);
-                } catch(e) { console.error("Erro ao processar imagem no PDF", e); }
+                    doc.addImage(dados.foto, 'JPEG', 140, 38, 55, 55);
+                } catch(e) { console.error("Erro na imagem PDF", e); }
             }
 
             doc.save(`Ficha_${dados.numero}_${dados.nome_crianca.replace(/ /g, "_")}.pdf`);
+        }
+
+        // REGISTRO DE SERVICE WORKER PARA APP (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW PWA:', err));
+            });
         }
 
         window.onload = async () => {
