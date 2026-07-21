@@ -192,23 +192,25 @@
                         </div>
                     </div>
 
-                    <!-- 📍 FOTO COM GEOLOCALIZAÇÃO AUTOMÁTICA -->
-                    <div class="bg-gray-50 p-3 rounded-lg border border-dashed border-gray-400 text-center">
-                        <label class="block text-xs font-bold uppercase text-gray-600 mb-1">📷 Foto com Geolocalização GPS</label>
-                        <p class="text-[10px] text-gray-500 mb-2">A imagem receberá um carimbo inviolável de GPS, data e hora.</p>
-                        
-                        <input type="file" id="fotoInput" accept="image/*" capture="environment" class="hidden">
-                        <button type="button" onclick="capturarFotoComGPS()" class="bg-gray-700 text-white px-3 py-2 rounded text-xs font-semibold shadow hover:bg-gray-800 transition flex items-center justify-center gap-1 mx-auto">
-                            <span>📍</span> Tirar Foto com GPS
-                        </button>
-                        
-                        <div id="statusGps" class="text-[10px] text-amber-700 mt-1 font-semibold hidden">Obtendo coordenadas do satélite...</div>
+                    <!-- 📍 FOTO COM GEOLOCALIZAÇÃO AUTOMÁTICA (COMPATÍVEL COM IPHONE/SAFARI) -->
+<div class="bg-gray-50 p-3 rounded-lg border border-dashed border-gray-400 text-center">
+    <label class="block text-xs font-bold uppercase text-gray-600 mb-1">📷 Foto com Geolocalização GPS</label>
+    <p class="text-[10px] text-gray-500 mb-2">A imagem receberá o carimbo automático de GPS, data e hora.</p>
+    
+    <!-- Input direto acionando a câmera -->
+    <input type="file" id="fotoInput" accept="image/*" capture="environment" class="hidden">
+    
+    <button type="button" onclick="iniciarCaptura()" class="bg-gray-700 text-white px-3 py-2 rounded text-xs font-semibold shadow hover:bg-gray-800 transition flex items-center justify-center gap-1 mx-auto">
+        <span>📍</span> Tirar Foto / Selecionar Imagem
+    </button>
+    
+    <div id="statusGps" class="text-[10px] text-amber-700 mt-1 font-semibold hidden">Obtendo coordenadas do satélite...</div>
 
-                        <div id="previewContainer" class="mt-3 hidden flex flex-col items-center">
-                            <img id="fotoPreview" src="" class="h-44 w-full object-contain rounded-md border shadow-sm bg-black">
-                            <p class="text-[10px] text-green-700 font-bold mt-1">✓ Foto Carimbada com Sucesso</p>
-                        </div>
-                    </div>
+    <div id="previewContainer" class="mt-3 hidden flex flex-col items-center">
+        <img id="fotoPreview" src="" class="h-44 w-full object-contain rounded-md border shadow-sm bg-black">
+        <p class="text-[10px] text-green-700 font-bold mt-1">✓ Foto Carimbada com Sucesso</p>
+    </div>
+</div>
 
                     <div class="flex gap-2">
                         <button type="submit" class="flex-1 bg-cv-red hover-cv-red text-white font-bold py-3 px-4 rounded-lg shadow transition uppercase tracking-wider text-sm mt-2">
@@ -273,80 +275,81 @@
             }
         }
 
-        // 📍 CAPTURA DE FOTO COM CARIMBO DE GPS E DATA/HORA AUTOMÁTICOS
-        function capturarFotoComGPS() {
-            const statusGps = document.getElementById('statusGps');
-            statusGps.textContent = "Solicitando sinal de GPS e câmera...";
-            statusGps.classList.remove('hidden');
+        // Função ajustada para compatibilidade com iOS (iPhone)
+function iniciarCaptura() {
+    const statusGps = document.getElementById('statusGps');
+    statusGps.textContent = "Obtendo GPS...";
+    statusGps.classList.remove('hidden');
 
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude.toFixed(6);
-                    const lon = position.coords.longitude.toFixed(6);
-                    document.getElementById('geolocalizacao_coords').value = `${lat}, ${lon}`;
-                    statusGps.textContent = "Sinal de GPS obtido com sucesso!";
+    // Dispara a busca de localização em segundo plano
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude.toFixed(6);
+                const lon = position.coords.longitude.toFixed(6);
+                document.getElementById('geolocalizacao_coords').value = `${lat}, ${lon}`;
+                statusGps.textContent = "GPS Detectado!";
+            },
+            (error) => {
+                console.warn("GPS desativado ou erro:", error);
+                document.getElementById('geolocalizacao_coords').value = "Sem Sinal GPS";
+                statusGps.textContent = "Foto sem GPS (Apenas Data/Hora).";
+            },
+            { enableHighAccuracy: true, timeout: 5000 }
+        );
+    }
 
-                    // Abre a câmera
-                    document.getElementById('fotoInput').click();
-                },
-                (error) => {
-                    console.warn("GPS Indisponível/Negado:", error);
-                    statusGps.textContent = "GPS indisponível. A foto será salva apenas com Data/Hora.";
-                    document.getElementById('geolocalizacao_coords').value = "Sem Sinal GPS";
-                    document.getElementById('fotoInput').click();
-                },
-                { enableHighAccuracy: true, timeout: 7000 }
-            );
-        }
+    // Clique direto exigido pelo Safari do iPhone
+    document.getElementById('fotoInput').click();
+}
 
-        // Processa a Imagem no Canvas para "Desenhar" o Carimbo no rodapé
-        document.getElementById('fotoInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
+// Processamento do Canvas para desenhar o carimbo no iOS
+document.getElementById('fotoInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
 
-                        canvas.width = img.width;
-                        canvas.height = img.height;
+                canvas.width = img.width;
+                canvas.height = img.height;
 
-                        // Desenha a foto original
-                        ctx.drawImage(img, 0, 0);
+                // Desenha a foto
+                ctx.drawImage(img, 0, 0);
 
-                        // Desenha a faixa preta no rodapé para o carimbo
-                        const alturaFaixa = Math.max(60, img.height * 0.08);
-                        ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-                        ctx.fillRect(0, img.height - alturaFaixa, img.width, alturaFaixa);
+                // Tarja preta transparente no rodapé
+                const alturaFaixa = Math.max(60, img.height * 0.08);
+                ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+                ctx.fillRect(0, img.height - alturaFaixa, img.width, alturaFaixa);
 
-                        // Configura o texto do Carimbo
-                        ctx.fillStyle = "#FFFFFF";
-                        const tamanhoFonte = Math.max(14, img.height * 0.022);
-                        ctx.font = `bold ${tamanhoFonte}px sans-serif`;
+                // Textos do carimbo
+                ctx.fillStyle = "#FFFFFF";
+                const tamanhoFonte = Math.max(14, img.height * 0.022);
+                ctx.font = `bold ${tamanhoFonte}px sans-serif`;
 
-                        const coords = document.getElementById('geolocalizacao_coords').value || "Sem GPS";
-                        const agora = new Date().toLocaleString('pt-BR');
+                const coords = document.getElementById('geolocalizacao_coords').value || "Buscando GPS...";
+                const agora = new Date().toLocaleString('pt-BR');
 
-                        const textoLinha1 = `CRUZ VERMELHA BRASILEIRA - PA | ${agora}`;
-                        const textoLinha2 = `📍 LAT/LON: ${coords}`;
+                const textoLinha1 = `CRUZ VERMELHA BRASILEIRA - PA | ${agora}`;
+                const textoLinha2 = `📍 LAT/LON: ${coords}`;
 
-                        ctx.fillText(textoLinha1, 15, img.height - (alturaFaixa * 0.55));
-                        ctx.fillStyle = "#FFCC00"; // Cor amarela para o GPS destacar
-                        ctx.fillText(textoLinha2, 15, img.height - (alturaFaixa * 0.18));
+                ctx.fillText(textoLinha1, 15, img.height - (alturaFaixa * 0.55));
+                ctx.fillStyle = "#FFCC00";
+                ctx.fillText(textoLinha2, 15, img.height - (alturaFaixa * 0.18));
 
-                        // Converte a imagem com carimbo para Base64
-                        fotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
-                        document.getElementById('fotoPreview').src = fotoBase64;
-                        document.getElementById('previewContainer').classList.remove('hidden');
-                        document.getElementById('statusGps').classList.add('hidden');
-                    };
-                    img.src = event.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+                fotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
+                document.getElementById('fotoPreview').src = fotoBase64;
+                document.getElementById('previewContainer').classList.remove('hidden');
+                document.getElementById('statusGps').classList.add('hidden');
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
 
         // LOGIN
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
