@@ -326,13 +326,11 @@
         }
     }
 
-    // Função ajustada para compatibilidade com iOS (iPhone)
     function iniciarCaptura() {
         const statusGps = document.getElementById('statusGps');
         statusGps.textContent = "Obtendo GPS...";
         statusGps.classList.remove('hidden');
 
-        // Dispara a busca de localização em segundo plano
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -350,11 +348,9 @@
             );
         }
 
-        // Clique direto exigido pelo Safari do iPhone
         document.getElementById('fotoInput').click();
     }
 
-    // Processamento do Canvas para desenhar o carimbo no iOS
     document.getElementById('fotoInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -368,15 +364,12 @@
                     canvas.width = img.width;
                     canvas.height = img.height;
 
-                    // Desenha a foto
                     ctx.drawImage(img, 0, 0);
 
-                    // Tarja preta transparente no rodapé
                     const alturaFaixa = Math.max(60, img.height * 0.08);
                     ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
                     ctx.fillRect(0, img.height - alturaFaixa, img.width, alturaFaixa);
 
-                    // Textos do carimbo
                     ctx.fillStyle = "#FFFFFF";
                     const tamanhoFonte = Math.max(14, img.height * 0.022);
                     ctx.font = `bold ${tamanhoFonte}px sans-serif`;
@@ -402,21 +395,37 @@
         }
     });
 
-    // LOGIN COM AUTENTICAÇÃO SEGURA NO SUPABASE
+    // LOGIN AJUSTADO PARA O SEU LAYOUT ORIGINAL
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const email = document.getElementById('loginEmail').value.trim();
-        const senha = document.getElementById('loginSenha').value.trim();
+        
+        const emailInput = document.getElementById('loginEmail');
+        const senhaInput = document.getElementById('loginSenha');
         const erroEl = document.getElementById('loginErro');
 
-        erroEl.classList.add('hidden');
+        if (!emailInput || !senhaInput) {
+            alert("Erro nos campos de login. Verifique o HTML.");
+            return;
+        }
+
+        const email = emailInput.value.trim();
+        const senha = senhaInput.value.trim();
+
+        if (erroEl) erroEl.classList.add('hidden');
 
         try {
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ 
+                email: email, 
+                password: senha 
+            });
 
             if (error) {
-                erroEl.textContent = "Acesso negado: " + (error.message === "Invalid login credentials" ? "E-mail ou senha incorretos." : error.message);
-                erroEl.classList.remove('hidden');
+                if (erroEl) {
+                    erroEl.textContent = "Acesso negado: " + (error.message === "Invalid login credentials" ? "E-mail ou senha incorretos." : error.message);
+                    erroEl.classList.remove('hidden');
+                } else {
+                    alert("Acesso negado: E-mail ou senha incorretos.");
+                }
             } else if (data && data.user) {
                 document.getElementById('telaLogin').classList.add('hidden');
                 document.getElementById('conteudoApp').classList.remove('hidden');
@@ -424,9 +433,11 @@
                 buscarFichas();
             }
         } catch (err) {
-            console.error("Erro na tentativa de login:", err);
-            erroEl.textContent = "Erro ao conectar com o servidor.";
-            erroEl.classList.remove('hidden');
+            console.error("Erro ao autenticar:", err);
+            if (erroEl) {
+                erroEl.textContent = "Falha de conexão. Tente novamente.";
+                erroEl.classList.remove('hidden');
+            }
         }
     });
 
@@ -442,7 +453,7 @@
         buscarFichas();
     }
 
-    // SALVAR FICHA (Tabela 'fichas')
+    // SALVAR FICHA
     document.getElementById('fichaForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
@@ -688,7 +699,7 @@
     }
 
     // VERIFICA SESSÃO AO CARREGAR A PÁGINA
-    window.onload = async () => {
+    window.addEventListener('DOMContentLoaded', async () => {
         const { data } = await supabaseClient.auth.getSession();
         if (data?.session) {
             document.getElementById('telaLogin').classList.add('hidden');
@@ -696,5 +707,5 @@
             resetarDataHoraCampos();
             buscarFichas();
         }
-    };
+    });
 </script>
