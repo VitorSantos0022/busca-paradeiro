@@ -27,6 +27,56 @@
     </style>
 </head>
 <body class="bg-[#F5F5F5] text-[#202020] font-sans antialiased pb-10">
+    <!-- TELA DE LOGIN (SOBREPOSTA) -->
+<div id="telaLogin" style="
+  position: fixed; 
+  top: 0; left: 0; 
+  width: 100vw; height: 100vh; 
+  background: linear-gradient(135deg, #8b0000, #2b2b2b); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  z-index: 9999;
+  font-family: Arial, sans-serif;">
+
+  <div style="
+    background: #ffffff; 
+    padding: 30px; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+    width: 90%; 
+    max-width: 380px; 
+    text-align: center;">
+
+    <div style="font-size: 40px; color: #d32f2f; margin-bottom: 10px;">+</div>
+    <h2 style="margin: 0; color: #333; font-size: 20px;">Cruz Vermelha Brasileira</h2>
+    <p style="color: #666; font-size: 13px; margin-bottom: 20px;">Acesso Restrito ao Painel Gerencial</p>
+
+    <form onsubmit="validarAcessoAteAqui(event)" style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="text-align: left;">
+        <label style="font-size: 12px; font-weight: bold; color: #444;">E-mail Cadastrado</label>
+        <input type="email" id="inputEmail" required placeholder="seu.email@gmail.com" style="
+          width: 100%; padding: 10px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
+      </div>
+
+      <div style="text-align: left;">
+        <label style="font-size: 12px; font-weight: bold; color: #444;">Senha</label>
+        <input type="password" id="inputSenha" required placeholder="••••••••" style="
+          width: 100%; padding: 10px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
+      </div>
+
+      <div id="loginErro" style="color: #d32f2f; font-size: 13px; display: none; font-weight: bold;">
+        E-mail ou senha incorretos!
+      </div>
+
+      <button type="submit" id="btnEntrar" style="
+        background: #d32f2f; color: white; border: none; padding: 12px; border-radius: 6px; 
+        font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s;">
+        Entrar no Sistema
+      </button>
+    </form>
+  </div>
+</div>
 
     <!-- TELA DE LOGIN -->
     <div id="telaLogin" class="fixed inset-0 bg-gray-100 flex items-center justify-center z-50 px-4">
@@ -248,390 +298,403 @@
     </div>
 
     <!-- SCRIPT LOGIC -->
-    <script>
-        const SUPABASE_URL = "https://lugixdejmgmwqntjujkg.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_-p2f6_jQjQyhV2oGtcZPmg_Yf1ugtKv";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<script>
+    // Configurações Oficiais do Supabase
+    const SUPABASE_URL = "https://lugixdejmgmwqntjujkg.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Z2l4ZGVqbWdtd3FudGp1amtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3OTQ2NjIsImV4cCI6MjA5OTM3MDY2Mn0.ExypL-sdfxa0DEjBm8z6etTzA2W7Ln-hG9_W8sj22w8";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let fotoBase64 = "";
+    let fotoBase64 = "";
 
-        function resetarDataHoraCampos() {
-            const agora = new Date();
-            document.getElementById('data_recebimento').value = agora.toISOString().split('T')[0];
-            document.getElementById('hora_recebimento').value = agora.toTimeString().split(' ')[0].substring(0,5);
-            document.getElementById('data_entrega').value = "";
-            document.getElementById('hora_entrega').value = "";
-        }
-
-        function verificarOutroVinculo() {
-            const vinculo = document.getElementById('vinculo_responsavel').value;
-            const divOutro = document.getElementById('campoOutroVinculo');
-            if (vinculo === "Outro") {
-                divOutro.classList.remove('hidden');
-                document.getElementById('outro_vinculo').setAttribute('required', 'required');
-            } else {
-                divOutro.classList.add('hidden');
-                document.getElementById('outro_vinculo').removeAttribute('required');
-            }
-        }
-
-        // Função ajustada para compatibilidade com iOS (iPhone)
-function iniciarCaptura() {
-    const statusGps = document.getElementById('statusGps');
-    statusGps.textContent = "Obtendo GPS...";
-    statusGps.classList.remove('hidden');
-
-    // Dispara a busca de localização em segundo plano
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const lat = position.coords.latitude.toFixed(6);
-                const lon = position.coords.longitude.toFixed(6);
-                document.getElementById('geolocalizacao_coords').value = `${lat}, ${lon}`;
-                statusGps.textContent = "GPS Detectado!";
-            },
-            (error) => {
-                console.warn("GPS desativado ou erro:", error);
-                document.getElementById('geolocalizacao_coords').value = "Sem Sinal GPS";
-                statusGps.textContent = "Foto sem GPS (Apenas Data/Hora).";
-            },
-            { enableHighAccuracy: true, timeout: 5000 }
-        );
+    function resetarDataHoraCampos() {
+        const agora = new Date();
+        document.getElementById('data_recebimento').value = agora.toISOString().split('T')[0];
+        document.getElementById('hora_recebimento').value = agora.toTimeString().split(' ')[0].substring(0,5);
+        document.getElementById('data_entrega').value = "";
+        document.getElementById('hora_entrega').value = "";
     }
 
-    // Clique direto exigido pelo Safari do iPhone
-    document.getElementById('fotoInput').click();
-}
+    function verificarOutroVinculo() {
+        const vinculo = document.getElementById('vinculo_responsavel').value;
+        const divOutro = document.getElementById('campoOutroVinculo');
+        if (vinculo === "Outro") {
+            divOutro.classList.remove('hidden');
+            document.getElementById('outro_vinculo').setAttribute('required', 'required');
+        } else {
+            divOutro.classList.add('hidden');
+            document.getElementById('outro_vinculo').removeAttribute('required');
+        }
+    }
 
-// Processamento do Canvas para desenhar o carimbo no iOS
-document.getElementById('fotoInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
+    // Função ajustada para compatibilidade com iOS (iPhone)
+    function iniciarCaptura() {
+        const statusGps = document.getElementById('statusGps');
+        statusGps.textContent = "Obtendo GPS...";
+        statusGps.classList.remove('hidden');
 
-                canvas.width = img.width;
-                canvas.height = img.height;
+        // Dispara a busca de localização em segundo plano
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude.toFixed(6);
+                    const lon = position.coords.longitude.toFixed(6);
+                    document.getElementById('geolocalizacao_coords').value = `${lat}, ${lon}`;
+                    statusGps.textContent = "GPS Detectado!";
+                },
+                (error) => {
+                    console.warn("GPS desativado ou erro:", error);
+                    document.getElementById('geolocalizacao_coords').value = "Sem Sinal GPS";
+                    statusGps.textContent = "Foto sem GPS (Apenas Data/Hora).";
+                },
+                { enableHighAccuracy: true, timeout: 5000 }
+            );
+        }
 
-                // Desenha a foto
-                ctx.drawImage(img, 0, 0);
+        // Clique direto exigido pelo Safari do iPhone
+        document.getElementById('fotoInput').click();
+    }
 
-                // Tarja preta transparente no rodapé
-                const alturaFaixa = Math.max(60, img.height * 0.08);
-                ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-                ctx.fillRect(0, img.height - alturaFaixa, img.width, alturaFaixa);
+    // Processamento do Canvas para desenhar o carimbo no iOS
+    document.getElementById('fotoInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
 
-                // Textos do carimbo
-                ctx.fillStyle = "#FFFFFF";
-                const tamanhoFonte = Math.max(14, img.height * 0.022);
-                ctx.font = `bold ${tamanhoFonte}px sans-serif`;
+                    canvas.width = img.width;
+                    canvas.height = img.height;
 
-                const coords = document.getElementById('geolocalizacao_coords').value || "Buscando GPS...";
-                const agora = new Date().toLocaleString('pt-BR');
+                    // Desenha a foto
+                    ctx.drawImage(img, 0, 0);
 
-                const textoLinha1 = `CVB POLO BRAGANÇA - PA | ${agora}`;
-                const textoLinha2 = `📍 LAT/LON: ${coords}`;
+                    // Tarja preta transparente no rodapé
+                    const alturaFaixa = Math.max(60, img.height * 0.08);
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+                    ctx.fillRect(0, img.height - alturaFaixa, img.width, alturaFaixa);
 
-                ctx.fillText(textoLinha1, 15, img.height - (alturaFaixa * 0.55));
-                ctx.fillStyle = "#FFCC00";
-                ctx.fillText(textoLinha2, 15, img.height - (alturaFaixa * 0.18));
+                    // Textos do carimbo
+                    ctx.fillStyle = "#FFFFFF";
+                    const tamanhoFonte = Math.max(14, img.height * 0.022);
+                    ctx.font = `bold ${tamanhoFonte}px sans-serif`;
 
-                fotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
-                document.getElementById('fotoPreview').src = fotoBase64;
-                document.getElementById('previewContainer').classList.remove('hidden');
-                document.getElementById('statusGps').classList.add('hidden');
+                    const coords = document.getElementById('geolocalizacao_coords').value || "Buscando GPS...";
+                    const agora = new Date().toLocaleString('pt-BR');
+
+                    const textoLinha1 = `CVB POLO BRAGANÇA - PA | ${agora}`;
+                    const textoLinha2 = `📍 LAT/LON: ${coords}`;
+
+                    ctx.fillText(textoLinha1, 15, img.height - (alturaFaixa * 0.55));
+                    ctx.fillStyle = "#FFCC00";
+                    ctx.fillText(textoLinha2, 15, img.height - (alturaFaixa * 0.18));
+
+                    fotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
+                    document.getElementById('fotoPreview').src = fotoBase64;
+                    document.getElementById('previewContainer').classList.remove('hidden');
+                    document.getElementById('statusGps').classList.add('hidden');
+                };
+                img.src = event.target.result;
             };
-            img.src = event.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-});
+            reader.readAsDataURL(file);
+        }
+    });
 
-        // LOGIN
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const senha = document.getElementById('loginSenha').value;
-            const erroEl = document.getElementById('loginErro');
+    // LOGIN COM AUTENTICAÇÃO SEGURA NO SUPABASE
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value.trim();
+        const senha = document.getElementById('loginSenha').value.trim();
+        const erroEl = document.getElementById('loginErro');
 
+        erroEl.classList.add('hidden');
+
+        try {
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
 
             if (error) {
-                erroEl.textContent = "Acesso negado: " + error.message;
+                erroEl.textContent = "Acesso negado: " + (error.message === "Invalid login credentials" ? "E-mail ou senha incorretos." : error.message);
                 erroEl.classList.remove('hidden');
-            } else {
-                erroEl.classList.add('hidden');
+            } else if (data && data.user) {
                 document.getElementById('telaLogin').classList.add('hidden');
                 document.getElementById('conteudoApp').classList.remove('hidden');
                 resetarDataHoraCampos();
                 buscarFichas();
             }
-        });
+        } catch (err) {
+            console.error("Erro na tentativa de login:", err);
+            erroEl.textContent = "Erro ao conectar com o servidor.";
+            erroEl.classList.remove('hidden');
+        }
+    });
 
-        function fazerLogout() {
-            supabaseClient.auth.signOut();
-            document.getElementById('telaLogin').classList.remove('hidden');
-            document.getElementById('conteudoApp').classList.add('hidden');
-            document.getElementById('loginForm').reset();
+    function fazerLogout() {
+        supabaseClient.auth.signOut();
+        document.getElementById('telaLogin').classList.remove('hidden');
+        document.getElementById('conteudoApp').classList.add('hidden');
+        document.getElementById('loginForm').reset();
+    }
+
+    function limparFiltroData() {
+        document.getElementById('filtroData').value = "";
+        buscarFichas();
+    }
+
+    // SALVAR FICHA (Tabela 'fichas')
+    document.getElementById('fichaForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const idEdicao = document.getElementById('editId').value;
+        const dados = {
+            nome_crianca: document.getElementById('nome_crianca').value,
+            idade: document.getElementById('idade').value,
+            endereco: document.getElementById('endereco').value,
+            bairro: document.getElementById('bairro').value,
+            telefone: document.getElementById('telefone').value,
+            rg: document.getElementById('rg').value,
+            nome_responsavel: document.getElementById('nome_responsavel').value,
+            vinculo_responsavel: document.getElementById('vinculo_responsavel').value,
+            outro_vinculo: document.getElementById('vinculo_responsavel').value === "Outro" ? document.getElementById('outro_vinculo').value : null,
+            responsavel: document.getElementById('responsavel').value,
+            coordenador: document.getElementById('coordenador').value,
+            posto: document.getElementById('posto').value,
+            cidade: document.getElementById('cidade').value,
+            data_recebimento: document.getElementById('data_recebimento').value,
+            hora_recebimento: document.getElementById('hora_recebimento').value,
+            data_entrega: document.getElementById('data_entrega').value || null,
+            hora_entrega: document.getElementById('hora_entrega').value || null,
+            geolocalizacao: document.getElementById('geolocalizacao_coords').value || null,
+            foto: fotoBase64
+        };
+
+        try {
+            if (idEdicao) {
+                const { error } = await supabaseClient.from('fichas').update(dados).eq('id', idEdicao);
+                if (error) throw error;
+                alert("Ficha atualizada com sucesso!");
+            } else {
+                const { data, error } = await supabaseClient.from('fichas').insert([dados]).select();
+                if (error) throw error;
+                alert(`Ficha Nº ${data[0].numero || data[0].id} salva com foto geolocalizada.`);
+                gerarPDF(data[0]);
+            }
+            cancelarEdicao();
+            buscarFichas();
+        } catch (err) {
+            console.error("Erro ao salvar ficha:", err);
+            alert("Erro ao conectar com a nuvem.");
+        }
+    });
+
+    function calcularTempoAtendimento(dataRec, horaRec, dataEnt, horaEnt) {
+        if (!dataEnt || !horaEnt) return "Em atendimento";
+        try {
+            const rec = new Date(`${dataRec}T${horaRec.substring(0,5)}`);
+            const ent = new Date(`${dataEnt}T${horaEnt.substring(0,5)}`);
+            const diffMs = ent - rec;
+            if (diffMs < 0) return "Duração inválida";
+            
+            const totalMin = Math.floor(diffMs / 60000);
+            const horas = Math.floor(totalMin / 60);
+            const minutos = totalMin % 60;
+            
+            if (horas === 0) return `${minutos}min`;
+            return `${horas}h ${minutos}min`;
+        } catch (e) {
+            return "Erro no cálculo";
+        }
+    }
+
+    async function buscarFichas() {
+        const query = document.getElementById('buscaInput').value;
+        const dataFiltro = document.getElementById('filtroData').value;
+        const lista = document.getElementById('listaFichas');
+        lista.innerHTML = "";
+
+        let rpcQuery = supabaseClient.from('fichas').select('*');
+
+        if (query.length >= 2) {
+            rpcQuery = rpcQuery.or(`nome_crianca.ilike.%${query}%,nome_responsavel.ilike.%${query}%,bairro.ilike.%${query}%`);
+        }
+        if (dataFiltro) {
+            rpcQuery = rpcQuery.eq('data_recebimento', dataFiltro);
         }
 
-        function limparFiltroData() {
-            document.getElementById('filtroData').value = "";
+        const { data, error } = await rpcQuery.order('id', { ascending: false });
+
+        if (error) {
+            console.error("Erro ao carregar fichas:", error);
+            lista.innerHTML = '<p class="text-center text-xs text-red-500">Erro ao carregar registros do banco.</p>';
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            lista.innerHTML = '<p class="text-center text-xs text-gray-400">Nenhum registro encontrado.</p>';
+            return;
+        }
+
+        data.forEach(f => {
+            const tempo = calcularTempoAtendimento(f.data_recebimento, f.hora_recebimento, f.data_entrega, f.hora_entrega);
+            const parentesco = f.vinculo_responsavel === "Outro" ? f.outro_vinculo : f.vinculo_responsavel;
+
+            const div = document.createElement('div');
+            div.className = "p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs space-y-2";
+            div.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="font-bold text-gray-800">Nº ${f.numero || f.id} - ${f.nome_crianca}</p>
+                        <p class="text-gray-500">Resp: ${f.nome_responsavel} (${parentesco})</p>
+                    </div>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold ${f.data_entrega ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                        ${f.data_entrega ? 'Entregue' : 'Em Atendimento'}
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-1 text-[10px] text-gray-600 bg-white p-2 rounded border border-gray-100">
+                    <p>📥 Rec: ${f.data_recebimento} às ${f.hora_recebimento ? f.hora_recebimento.substring(0,5) : ''}</p>
+                    <p>📤 Ent: ${f.data_entrega ? `${f.data_entrega} às ${f.hora_entrega.substring(0,5)}` : 'Pendente'}</p>
+                    <p class="col-span-2 font-semibold text-cv-red border-t border-gray-100 pt-1 mt-1 flex justify-between">
+                        <span>Duração: ${tempo}</span>
+                        <span class="text-gray-400">📍 ${f.geolocalizacao || 'Sem GPS'}</span>
+                    </p>
+                </div>
+                <div class="flex gap-1 justify-end">
+                    <button onclick='carregarFichaEdicao(${JSON.stringify(f)})' class="bg-amber-600 text-white px-2 py-1 rounded text-[10px] font-semibold">Editar</button>
+                    <button onclick='gerarPDF(${JSON.stringify(f)})' class="bg-cv-red text-white px-2 py-1 rounded text-[10px] font-semibold">PDF</button>
+                </div>
+            `;
+            lista.appendChild(div);
+        });
+    }
+
+    function carregarFichaEdicao(f) {
+        document.getElementById('editId').value = f.id;
+        document.getElementById('posto').value = f.posto;
+        document.getElementById('cidade').value = f.cidade;
+        document.getElementById('nome_crianca').value = f.nome_crianca;
+        document.getElementById('idade').value = f.idade;
+        document.getElementById('endereco').value = f.endereco;
+        document.getElementById('bairro').value = f.bairro;
+        document.getElementById('telefone').value = f.telefone;
+        document.getElementById('rg').value = f.rg;
+        document.getElementById('nome_responsavel').value = f.nome_responsavel || "";
+        document.getElementById('vinculo_responsavel').value = f.vinculo_responsavel || "Mãe";
+        document.getElementById('responsavel').value = f.responsavel;
+        document.getElementById('coordenador').value = f.coordenador;
+        document.getElementById('data_recebimento').value = f.data_recebimento;
+        document.getElementById('hora_recebimento').value = f.hora_recebimento ? f.hora_recebimento.substring(0,5) : "";
+        document.getElementById('data_entrega').value = f.data_entrega || "";
+        document.getElementById('hora_entrega').value = f.hora_entrega ? f.hora_entrega.substring(0,5) : "";
+
+        if(f.foto) {
+            fotoBase64 = f.foto;
+            document.getElementById('fotoPreview').src = f.foto;
+            document.getElementById('previewContainer').classList.remove('hidden');
+        }
+
+        document.getElementById('tituloForm').textContent = "Alterar Registro";
+        document.getElementById('badgeEdicao').classList.remove('hidden');
+        document.getElementById('btnCancelarEdicao').classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelarEdicao() {
+        document.getElementById('fichaForm').reset();
+        document.getElementById('editId').value = "";
+        document.getElementById('previewContainer').classList.add('hidden');
+        document.getElementById('campoOutroVinculo').classList.add('hidden');
+        fotoBase64 = "";
+        resetarDataHoraCampos();
+        document.getElementById('tituloForm').textContent = "Nova Ficha de Busca";
+        document.getElementById('badgeEdicao').classList.add('hidden');
+        document.getElementById('btnCancelarEdicao').classList.add('hidden');
+    }
+
+    function gerarPDF(dados) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFillColor(214, 0, 28); 
+        doc.rect(10, 10, 190, 8, 'F');
+        
+        doc.setFont("Helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(255, 255, 255);
+        doc.text("CRUZ VERMELHA BRASILEIRA - FILIAL DO ESTADO DO PARÁ", 15, 16);
+        
+        doc.setTextColor(32, 32, 32);
+        doc.setFontSize(14);
+        doc.text("FICHA DE BUSCA DE PARADEIRO", 10, 30);
+        doc.setFontSize(10);
+        doc.text(`Ficha Sequencial Nº: ${dados.numero || dados.id}`, 150, 30);
+        
+        doc.line(10, 33, 200, 33); 
+
+        doc.setFont("Helvetica", "normal");
+        doc.text(`NOME DA CRIANÇA: ${dados.nome_crianca.toUpperCase()}`, 10, 43);
+        doc.text(`IDADE: ${dados.idade}`, 10, 51);
+        
+        doc.setFont("Helvetica", "bold");
+        doc.text("RESPONSÁVEL / TUTOR:", 10, 61);
+        doc.setFont("Helvetica", "normal");
+        const parentesco = dados.vinculo_responsavel === "Outro" ? dados.outro_vinculo : dados.vinculo_responsavel;
+        doc.text(`NOME: ${dados.nome_responsavel.toUpperCase()}`, 20, 68);
+        doc.text(`VÍNCULO/PARENTESCO: ${parentesco ? parentesco.toUpperCase() : ''}`, 20, 75);
+        doc.text(`NÚMERO DA CARTEIRA DE IDENTIDADE (RG): ${dados.rg}`, 20, 82);
+
+        doc.text(`ENDEREÇO RESIDENCIAL: ${dados.endereco.toUpperCase()}`, 10, 93);
+        doc.text(`BAIRRO: ${dados.bairro.toUpperCase()}`, 10, 100);
+        doc.text(`TELEFONE DE CONTATO: ${dados.telefone}`, 120, 100);
+        
+        doc.line(10, 106, 200, 106);
+        doc.setFont("Helvetica", "bold");
+        doc.text("CONTROLE DE TEMPO E GEOLOCALIZAÇÃO", 10, 113);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`Horário de Recebimento: ${dados.data_recebimento} às ${dados.hora_recebimento ? dados.hora_recebimento.substring(0,5) : ''}`, 10, 120);
+        
+        const entregaStr = dados.data_entrega ? `${dados.data_entrega} às ${dados.hora_entrega.substring(0,5)}` : 'PENDENTE (SOB CUIDADOS DO POSTO)';
+        doc.text(`Horário de Entrega: ${entregaStr}`, 10, 127);
+        
+        const tempo = calcularTempoAtendimento(dados.data_recebimento, dados.hora_recebimento, dados.data_entrega, dados.hora_entrega);
+        doc.setFont("Helvetica", "bold");
+        doc.text(`Tempo Total em Atendimento: ${tempo.toUpperCase()}`, 10, 134);
+        doc.text(`Coordenadas de GPS: ${dados.geolocalizacao || 'Registrado na foto'}`, 10, 141);
+
+        doc.setFont("Helvetica", "normal");
+        doc.text(`${dados.cidade.toUpperCase()}: ${dados.data_recebimento}`, 10, 151);
+        
+        doc.text("____________________________________________________________", 10, 168);
+        doc.text(`COORDENADOR DO POSTO: ${dados.coordenador.toUpperCase()}`, 10, 174);
+        doc.text(`POSTO: ${dados.posto.toUpperCase()}`, 10, 180);
+
+        doc.text("____________________________________________________________", 10, 197);
+        doc.text(`VOLUNTÁRIO RESPONSÁVEL: ${dados.responsavel.toUpperCase()}`, 10, 203);
+
+        if (dados.foto) {
+            try {
+                doc.addImage(dados.foto, 'JPEG', 140, 38, 55, 55);
+            } catch(e) { console.error("Erro na imagem PDF", e); }
+        }
+
+        doc.save(`Ficha_${dados.numero || dados.id}_${dados.nome_crianca.replace(/ /g, "_")}.pdf`);
+    }
+
+    // REGISTRO DE SERVICE WORKER PARA APP (PWA)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW PWA:', err));
+        });
+    }
+
+    // VERIFICA SESSÃO AO CARREGAR A PÁGINA
+    window.onload = async () => {
+        const { data } = await supabaseClient.auth.getSession();
+        if (data?.session) {
+            document.getElementById('telaLogin').classList.add('hidden');
+            document.getElementById('conteudoApp').classList.remove('hidden');
+            resetarDataHoraCampos();
             buscarFichas();
         }
-
-        // SALVAR FICHA
-        document.getElementById('fichaForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const idEdicao = document.getElementById('editId').value;
-            const dados = {
-                nome_crianca: document.getElementById('nome_crianca').value,
-                idade: document.getElementById('idade').value,
-                endereco: document.getElementById('endereco').value,
-                bairro: document.getElementById('bairro').value,
-                telefone: document.getElementById('telefone').value,
-                rg: document.getElementById('rg').value,
-                nome_responsavel: document.getElementById('nome_responsavel').value,
-                vinculo_responsavel: document.getElementById('vinculo_responsavel').value,
-                outro_vinculo: document.getElementById('vinculo_responsavel').value === "Outro" ? document.getElementById('outro_vinculo').value : null,
-                responsavel: document.getElementById('responsavel').value,
-                coordenador: document.getElementById('coordenador').value,
-                posto: document.getElementById('posto').value,
-                cidade: document.getElementById('cidade').value,
-                data_recebimento: document.getElementById('data_recebimento').value,
-                hora_recebimento: document.getElementById('hora_recebimento').value,
-                data_entrega: document.getElementById('data_entrega').value || null,
-                hora_entrega: document.getElementById('hora_entrega').value || null,
-                geolocalizacao: document.getElementById('geolocalizacao_coords').value || null,
-                foto: fotoBase64
-            };
-
-            try {
-                if (idEdicao) {
-                    const { error } = await supabaseClient.from('fichas').update(dados).eq('id', idEdicao);
-                    if (error) throw error;
-                    alert("Ficha atualizada com sucesso!");
-                } else {
-                    const { data, error } = await supabaseClient.from('fichas').insert([dados]).select();
-                    if (error) throw error;
-                    alert(`Ficha Nº ${data[0].numero} salva com foto geolocalizada.`);
-                    gerarPDF(data[0]);
-                }
-                cancelarEdicao();
-                buscarFichas();
-            } catch (err) {
-                console.error(err);
-                alert("Erro ao conectar com a nuvem.");
-            }
-        });
-
-        function calcularTempoAtendimento(dataRec, horaRec, dataEnt, horaEnt) {
-            if (!dataEnt || !horaEnt) return "Em atendimento";
-            try {
-                const rec = new Date(`${dataRec}T${horaRec.substring(0,5)}`);
-                const ent = new Date(`${dataEnt}T${horaEnt.substring(0,5)}`);
-                const diffMs = ent - rec;
-                if (diffMs < 0) return "Duração inválida";
-                
-                const totalMin = Math.floor(diffMs / 60000);
-                const horas = Math.floor(totalMin / 60);
-                const minutos = totalMin % 60;
-                
-                if (horas === 0) return `${minutos}min`;
-                return `${horas}h ${minutos}min`;
-            } catch (e) {
-                return "Erro no cálculo";
-            }
-        }
-
-        async function buscarFichas() {
-            const query = document.getElementById('buscaInput').value;
-            const dataFiltro = document.getElementById('filtroData').value;
-            const lista = document.getElementById('listaFichas');
-            lista.innerHTML = "";
-
-            let rpcQuery = supabaseClient.from('fichas').select('*');
-
-            if (query.length >= 2) {
-                rpcQuery = rpcQuery.or(`nome_crianca.ilike.%${query}%,nome_responsavel.ilike.%${query}%,bairro.ilike.%${query}%`);
-            }
-            if (dataFiltro) {
-                rpcQuery = rpcQuery.eq('data_recebimento', dataFiltro);
-            }
-
-            const { data } = await rpcQuery.order('id', { ascending: false });
-
-            if (!data || data.length === 0) {
-                lista.innerHTML = '<p class="text-center text-xs text-gray-400">Nenhum registro encontrado.</p>';
-                return;
-            }
-
-            data.forEach(f => {
-                const tempo = calcularTempoAtendimento(f.data_recebimento, f.hora_recebimento, f.data_entrega, f.hora_entrega);
-                const parentesco = f.vinculo_responsavel === "Outro" ? f.outro_vinculo : f.vinculo_responsavel;
-
-                const div = document.createElement('div');
-                div.className = "p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs space-y-2";
-                div.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="font-bold text-gray-800">Nº ${f.numero} - ${f.nome_crianca}</p>
-                            <p class="text-gray-500">Resp: ${f.nome_responsavel} (${parentesco})</p>
-                        </div>
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${f.data_entrega ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                            ${f.data_entrega ? 'Entregue' : 'Em Atendimento'}
-                        </span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-1 text-[10px] text-gray-600 bg-white p-2 rounded border border-gray-100">
-                        <p>📥 Rec: ${f.data_recebimento} às ${f.hora_recebimento.substring(0,5)}</p>
-                        <p>📤 Ent: ${f.data_entrega ? `${f.data_entrega} às ${f.hora_entrega.substring(0,5)}` : 'Pendente'}</p>
-                        <p class="col-span-2 font-semibold text-cv-red border-t border-gray-100 pt-1 mt-1 flex justify-between">
-                            <span>Duração: ${tempo}</span>
-                            <span class="text-gray-400">📍 ${f.geolocalizacao || 'Sem GPS'}</span>
-                        </p>
-                    </div>
-                    <div class="flex gap-1 justify-end">
-                        <button onclick='carregarFichaEdicao(${JSON.stringify(f)})' class="bg-amber-600 text-white px-2 py-1 rounded text-[10px] font-semibold">Editar</button>
-                        <button onclick='gerarPDF(${JSON.stringify(f)})' class="bg-cv-red text-white px-2 py-1 rounded text-[10px] font-semibold">PDF</button>
-                    </div>
-                `;
-                lista.appendChild(div);
-            });
-        }
-
-        function carregarFichaEdicao(f) {
-            document.getElementById('editId').value = f.id;
-            document.getElementById('posto').value = f.posto;
-            document.getElementById('cidade').value = f.cidade;
-            document.getElementById('nome_crianca').value = f.nome_crianca;
-            document.getElementById('idade').value = f.idade;
-            document.getElementById('endereco').value = f.endereco;
-            document.getElementById('bairro').value = f.bairro;
-            document.getElementById('telefone').value = f.telefone;
-            document.getElementById('rg').value = f.rg;
-            document.getElementById('nome_responsavel').value = f.nome_responsavel || "";
-            document.getElementById('vinculo_responsavel').value = f.vinculo_responsavel || "Mãe";
-            document.getElementById('responsavel').value = f.responsavel;
-            document.getElementById('coordenador').value = f.coordenador;
-            document.getElementById('data_recebimento').value = f.data_recebimento;
-            document.getElementById('hora_recebimento').value = f.hora_recebimento.substring(0,5);
-            document.getElementById('data_entrega').value = f.data_entrega || "";
-            document.getElementById('hora_entrega').value = f.hora_entrega ? f.hora_entrega.substring(0,5) : "";
-
-            if(f.foto) {
-                fotoBase64 = f.foto;
-                document.getElementById('fotoPreview').src = f.foto;
-                document.getElementById('previewContainer').classList.remove('hidden');
-            }
-
-            document.getElementById('tituloForm').textContent = "Alterar Registro";
-            document.getElementById('badgeEdicao').classList.remove('hidden');
-            document.getElementById('btnCancelarEdicao').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function cancelarEdicao() {
-            document.getElementById('fichaForm').reset();
-            document.getElementById('editId').value = "";
-            document.getElementById('previewContainer').classList.add('hidden');
-            document.getElementById('campoOutroVinculo').classList.add('hidden');
-            fotoBase64 = "";
-            resetarDataHoraCampos();
-            document.getElementById('tituloForm').textContent = "Nova Ficha de Busca";
-            document.getElementById('badgeEdicao').classList.add('hidden');
-            document.getElementById('btnCancelarEdicao').classList.add('hidden');
-        }
-
-        function gerarPDF(dados) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            doc.setFillColor(214, 0, 28); 
-            doc.rect(10, 10, 190, 8, 'F');
-            
-            doc.setFont("Helvetica", "bold");
-            doc.setFontSize(11);
-            doc.setTextColor(255, 255, 255);
-            doc.text("CRUZ VERMELHA BRASILEIRA - FILIAL DO ESTADO DO PARÁ", 15, 16);
-            
-            doc.setTextColor(32, 32, 32);
-            doc.setFontSize(14);
-            doc.text("FICHA DE BUSCA DE PARADEIRO", 10, 30);
-            doc.setFontSize(10);
-            doc.text(`Ficha Sequencial Nº: ${dados.numero}`, 150, 30);
-            
-            doc.line(10, 33, 200, 33); 
-
-            doc.setFont("Helvetica", "normal");
-            doc.text(`NOME DA CRIANÇA: ${dados.nome_crianca.toUpperCase()}`, 10, 43);
-            doc.text(`IDADE: ${dados.idade}`, 10, 51);
-            
-            doc.setFont("Helvetica", "bold");
-            doc.text("RESPONSÁVEL / TUTOR:", 10, 61);
-            doc.setFont("Helvetica", "normal");
-            const parentesco = dados.vinculo_responsavel === "Outro" ? dados.outro_vinculo : dados.vinculo_responsavel;
-            doc.text(`NOME: ${dados.nome_responsavel.toUpperCase()}`, 20, 68);
-            doc.text(`VÍNCULO/PARENTESCO: ${parentesco.toUpperCase()}`, 20, 75);
-            doc.text(`NÚMERO DA CARTEIRA DE IDENTIDADE (RG): ${dados.rg}`, 20, 82);
-
-            doc.text(`ENDEREÇO RESIDENCIAL: ${dados.endereco.toUpperCase()}`, 10, 93);
-            doc.text(`BAIRRO: ${dados.bairro.toUpperCase()}`, 10, 100);
-            doc.text(`TELEFONE DE CONTATO: ${dados.telefone}`, 120, 100);
-            
-            doc.line(10, 106, 200, 106);
-            doc.setFont("Helvetica", "bold");
-            doc.text("CONTROLE DE TEMPO E GEOLOCALIZAÇÃO", 10, 113);
-            doc.setFont("Helvetica", "normal");
-            doc.text(`Horário de Recebimento: ${dados.data_recebimento} às ${dados.hora_recebimento.substring(0,5)}`, 10, 120);
-            
-            const entregaStr = dados.data_entrega ? `${dados.data_entrega} às ${dados.hora_entrega.substring(0,5)}` : 'PENDENTE (SOB CUIDADOS DO POSTO)';
-            doc.text(`Horário de Entrega: ${entregaStr}`, 10, 127);
-            
-            const tempo = calcularTempoAtendimento(dados.data_recebimento, dados.hora_recebimento, dados.data_entrega, dados.hora_entrega);
-            doc.setFont("Helvetica", "bold");
-            doc.text(`Tempo Total em Atendimento: ${tempo.toUpperCase()}`, 10, 134);
-            doc.text(`Coordenadas de GPS: ${dados.geolocalizacao || 'Registrado na foto'}`, 10, 141);
-
-            doc.setFont("Helvetica", "normal");
-            doc.text(`${dados.cidade.toUpperCase()}: ${dados.data_recebimento}`, 10, 151);
-            
-            doc.text("____________________________________________________________", 10, 168);
-            doc.text(`COORDENADOR DO POSTO: ${dados.coordenador.toUpperCase()}`, 10, 174);
-            doc.text(`POSTO: ${dados.posto.toUpperCase()}`, 10, 180);
-
-            doc.text("____________________________________________________________", 10, 197);
-            doc.text(`VOLUNTÁRIO RESPONSÁVEL: ${dados.responsavel.toUpperCase()}`, 10, 203);
-
-            if (dados.foto) {
-                try {
-                    doc.addImage(dados.foto, 'JPEG', 140, 38, 55, 55);
-                } catch(e) { console.error("Erro na imagem PDF", e); }
-            }
-
-            doc.save(`Ficha_${dados.numero}_${dados.nome_crianca.replace(/ /g, "_")}.pdf`);
-        }
-
-        // REGISTRO DE SERVICE WORKER PARA APP (PWA)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW PWA:', err));
-            });
-        }
-
-        window.onload = async () => {
-            const { data } = await supabaseClient.auth.getSession();
-            if (data?.session) {
-                document.getElementById('telaLogin').classList.add('hidden');
-                document.getElementById('conteudoApp').classList.remove('hidden');
-                resetarDataHoraCampos();
-                buscarFichas();
-            }
-        };
-    </script>
-</body>
-</html>
+    };
+</script>
