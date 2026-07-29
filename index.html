@@ -469,7 +469,7 @@
                 } else {
                     const { data, error } = await supabaseClient.from('fichas').insert([dados]).select();
                     if (error) throw error;
-                    alert(`Ficha Nº ${data[0].numero || data[0].id} salva com sucesso.`);
+                    alert(`Ficha salva com sucesso.`);
                     gerarPDF(data[0]);
                 }
                 cancelarEdicao();
@@ -479,6 +479,32 @@
                 alert("Erro ao gravar os dados. Verifique a conexão.");
             }
         });
+
+        // MARCAR COMO ENTREGUE DIRETAMENTE DO HISTÓRICO
+        async function marcarComoEntregue(id) {
+            if (!confirm("Deseja marcar esta criança como ENTREGUE agora?")) return;
+
+            const agora = new Date();
+            const dataHoje = agora.toISOString().split('T')[0];
+            const horaAtual = agora.toTimeString().split(' ')[0].substring(0,5);
+
+            try {
+                const { error } = await supabaseClient
+                    .from('fichas')
+                    .update({
+                        data_entrega: dataHoje,
+                        hora_entrega: horaAtual
+                    })
+                    .eq('id', id);
+
+                if (error) throw error;
+                alert("Status atualizado para ENTREGUE!");
+                buscarFichas();
+            } catch (err) {
+                console.error("Erro ao marcar entregue:", err);
+                alert("Falha ao atualizar status.");
+            }
+        }
 
         function calcularTempoAtendimentoMinutos(dataRec, horaRec, dataEnt, horaEnt) {
             if (!dataEnt || !horaEnt) return null;
@@ -502,12 +528,30 @@
             return `${horas}h ${restoMin}min`;
         }
 
-        // CARREGAMENTO OTIMIZADO DE FICHAS NA TELA
+        // CARREGAMENTO OTIMIZADO DE FICHAS COM REORDENAÇÃO SEQUENCIAL CONTINUA (1, 2, 3...)
         async function buscarFichas() {
             const query = document.getElementById('buscaInput').value.trim();
             const dataFiltro = document.getElementById('filtroData').value;
             const lista = document.getElementById('listaFichas');
             lista.innerHTML = '<p class="text-center text-xs text-gray-400">Carregando registros...</p>';
+
+            // Carrega a lista completa em ordem cronológica (Crescente) para mapear o número sequencial continuo
+            const { data: todosRegistros, error: errTodos } = await supabaseClient
+                .from('fichas')
+                .select('id')
+                .order('id', { ascending: true });
+
+            if (errTodos) {
+                console.error("Erro ao carregar totais:", errTodos);
+                lista.innerHTML = '<p class="text-center text-xs text-red-500">Erro ao carregar dados do banco.</p>';
+                return;
+            }
+
+            // Mapeia o ID do banco para o número sequencial sem furos (1, 2, 3...)
+            const mapaNumeros = {};
+            todosRegistros.forEach((f, idx) => {
+                mapaNumeros[f.id] = idx + 1;
+            });
 
             let selectQuery = supabaseClient.from('fichas').select('id, numero, nome_crianca, nome_responsavel, vinculo_responsavel, outro_vinculo, data_recebimento, hora_recebimento, data_entrega, hora_entrega, geolocalizacao, bairro, idade, endereco, rg, telefone, responsavel, coordenador, posto, cidade');
 
@@ -533,6 +577,7 @@
 
             lista.innerHTML = "";
             data.forEach(f => {
+                const numeroExibicao = mapaNumeros[f.id] || f.id;
                 const tempo = calcularTempoAtendimentoTexto(f.data_recebimento, f.hora_recebimento, f.data_entrega, f.hora_entrega);
                 const parentesco = f.vinculo_responsavel === "Outro" ? f.outro_vinculo : f.vinculo_responsavel;
 
@@ -541,7 +586,7 @@
                 div.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="font-bold text-gray-800">Nº ${f.numero || f.id} - ${f.nome_crianca}</p>
+                            <p class="font-bold text-gray-800">Nº ${numeroExibicao} - ${f.nome_crianca}</p>
                             <p class="text-gray-500">Resp: ${f.nome_responsavel} (${parentesco})</p>
                         </div>
                         <span class="px-2 py-0.5 rounded text-[10px] font-bold ${f.data_entrega ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
@@ -557,8 +602,9 @@
                         </p>
                     </div>
                     <div class="flex gap-1 justify-end">
+                        ${!f.data_entrega ? `<button onclick='marcarComoEntregue(${f.id})' class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer">✓ Marcar Entregue</button>` : ''}
                         <button onclick='carregarFichaEdicaoCompleta(${f.id})' class="bg-amber-600 text-white px-2.5 py-1 rounded text-[10px] font-semibold cursor-pointer">Editar</button>
-                        <button onclick='gerarPDFCompleto(${f.id})' class="bg-cv-red text-white px-2.5 py-1 rounded text-[10px] font-semibold cursor-pointer">PDF</button>
+                        <button onclick='gerarPDFCompleto(${f.id}, ${numeroExibicao})' class="bg-cv-red text-white px-2.5 py-1 rounded text-[10px] font-semibold cursor-pointer">PDF</button>
                     </div>
                 `;
                 lista.appendChild(div);
@@ -570,9 +616,12 @@
             if (data) carregarFichaEdicao(data);
         }
 
-        async function gerarPDFCompleto(id) {
+        async function gerarPDFCompleto(id, numExibicao) {
             const { data } = await supabaseClient.from('fichas').select('*').eq('id', id).single();
-            if (data) gerarPDF(data);
+            if (data) {
+                if (numExibicao) data.numero_exibicao = numExibicao;
+                gerarPDF(data);
+            }
         }
 
         function carregarFichaEdicao(f) {
@@ -612,7 +661,7 @@
                 document.getElementById('previewContainer').classList.add('hidden');
             }
 
-            document.getElementById('tituloForm').textContent = "Editar Ficha Nº " + (f.numero || f.id);
+            document.getElementById('tituloForm').textContent = "Editar Ficha";
             document.getElementById('badgeEdicao').classList.remove('hidden');
             document.getElementById('btnCancelarEdicao').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -648,7 +697,7 @@
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(14);
             doc.setFont("helvetica", "bold");
-            doc.text(`REGISTRO Nº: ${f.numero || f.id}`, 14, 35);
+            doc.text(`REGISTRO Nº: ${f.numero_exibicao || f.numero || f.id}`, 14, 35);
             doc.setFontSize(10);
             doc.text(`Status: ${f.data_entrega ? 'ENTREGUE' : 'EM ATENDIMENTO'}`, 150, 35);
 
@@ -696,7 +745,7 @@
             doc.setTextColor(120, 120, 120);
             doc.text("Documento gerado digitalmente pelo Sistema de Busca & Paradeiro - Cruz Vermelha PA", 105, 285, { align: "center" });
 
-            doc.save(`Ficha_CVB_${f.numero || f.id}_${f.nome_crianca.replace(/\s+/g, '_')}.pdf`);
+            doc.save(`Ficha_CVB_${f.numero_exibicao || f.id}_${f.nome_crianca.replace(/\s+/g, '_')}.pdf`);
         }
 
         // DASHBOARD INDEPENDENTE COM GRÁFICOS ILUSTRATIVOS NO PDF
@@ -707,16 +756,22 @@
             btnPdf.disabled = true;
 
             try {
-                // Consulta Direta ao Banco
+                // Consulta Direta ao Banco ordenada por ID crescente para refazer a numeração continua
                 const { data: todasFichas, error } = await supabaseClient
                     .from('fichas')
                     .select('id, numero, nome_crianca, nome_responsavel, bairro, data_recebimento, hora_recebimento, data_entrega, hora_entrega')
-                    .order('id', { ascending: false });
+                    .order('id', { ascending: true });
 
                 if (error || !todasFichas || todasFichas.length === 0) {
                     alert("Não foi possível carregar os dados do banco para gerar o Dashboard.");
                     return;
                 }
+
+                // Inverte para exibição descrescente mantendo os números sequenciais (1, 2, 3...)
+                todasFichas.forEach((f, idx) => {
+                    f.numero_sequencial = idx + 1;
+                });
+                todasFichas.reverse();
 
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
@@ -883,7 +938,7 @@
                         doc.rect(14, y - 4, 182, 6, 'F');
                     }
 
-                    doc.text(String(f.numero || f.id), 16, y);
+                    doc.text(String(f.numero_sequencial), 16, y);
                     doc.text(String(f.nome_crianca || '').substring(0, 25), 30, y);
                     doc.text(String(f.nome_responsavel || '').substring(0, 22), 80, y);
                     doc.text(String(f.bairro || '').substring(0, 20), 125, y);
