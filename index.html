@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Busca & Paradeiro - Cruz Vermelha PA</title>
-    <!-- Manifest para PWA (Transformar em App) -->
+    
+    <!-- Manifest & Web App Configurations -->
     <meta name="theme-color" content="#D6001C">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,6 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <style>
         :root {
             --cv-red: #D6001C;
@@ -27,82 +29,32 @@
     </style>
 </head>
 <body class="bg-[#F5F5F5] text-[#202020] font-sans antialiased pb-10">
-    <!-- TELA DE LOGIN (SOBREPOSTA) -->
-<div id="telaLogin" style="
-  position: fixed; 
-  top: 0; left: 0; 
-  width: 100vw; height: 100vh; 
-  background: linear-gradient(135deg, #8b0000, #2b2b2b); 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  z-index: 9999;
-  font-family: Arial, sans-serif;">
 
-  <div style="
-    background: #ffffff; 
-    padding: 30px; 
-    border-radius: 12px; 
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
-    width: 90%; 
-    max-width: 380px; 
-    text-align: center;">
-
-    <div style="font-size: 40px; color: #d32f2f; margin-bottom: 10px;">+</div>
-    <h2 style="margin: 0; color: #333; font-size: 20px;">Cruz Vermelha Brasileira</h2>
-    <p style="color: #666; font-size: 13px; margin-bottom: 20px;">Acesso Restrito ao Painel Gerencial</p>
-
-    <form onsubmit="validarAcessoAteAqui(event)" style="display: flex; flex-direction: column; gap: 12px;">
-      <div style="text-align: left;">
-        <label style="font-size: 12px; font-weight: bold; color: #444;">E-mail Cadastrado</label>
-        <input type="email" id="inputEmail" required placeholder="seu.email@gmail.com" style="
-          width: 100%; padding: 10px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
-      </div>
-
-      <div style="text-align: left;">
-        <label style="font-size: 12px; font-weight: bold; color: #444;">Senha</label>
-        <input type="password" id="inputSenha" required placeholder="••••••••" style="
-          width: 100%; padding: 10px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
-      </div>
-
-      <div id="loginErro" style="color: #d32f2f; font-size: 13px; display: none; font-weight: bold;">
-        E-mail ou senha incorretos!
-      </div>
-
-      <button type="submit" id="btnEntrar" style="
-        background: #d32f2f; color: white; border: none; padding: 12px; border-radius: 6px; 
-        font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s;">
-        Entrar no Sistema
-      </button>
-    </form>
-  </div>
-</div>
-
-    <!-- TELA DE LOGIN -->
-    <div id="telaLogin" class="fixed inset-0 bg-gray-100 flex items-center justify-center z-50 px-4">
-        <div class="bg-white p-6 rounded-xl shadow-md border border-[#D9D9D9] w-full max-w-sm text-center">
-            <div class="w-16 h-16 bg-cv-red text-white flex items-center justify-center rounded-full mx-auto mb-3 text-2xl font-bold">＋</div>
-            <h2 class="text-lg font-bold text-cv-red uppercase tracking-wide">Cruz Vermelha Brasileira</h2>
-            <p class="text-xs text-gray-500 mb-4">Polo Bragança/PA | Acesso Restrito</p>
+    <!-- TELA DE LOGIN (LAYOUT ORIGINAL MANTIDO) -->
+    <div id="telaLogin" class="fixed inset-0 bg-[#121212] flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-6 rounded-xl shadow-2xl border border-gray-200 w-full max-w-sm text-center">
+            <div class="w-16 h-16 bg-cv-red text-white flex items-center justify-center rounded-2xl mx-auto mb-3 text-3xl font-bold shadow-md">＋</div>
+            <h2 class="text-lg font-bold text-gray-800 uppercase tracking-wide">Cruz Vermelha Brasileira</h2>
+            <p class="text-xs text-gray-500 mb-6">Filial do Pará | Polo Bragança</p>
             
-            <form id="loginForm" class="space-y-3 text-left">
+            <form id="loginForm" class="space-y-4 text-left">
                 <div>
-                    <label class="block text-xs font-semibold uppercase text-gray-600">E-mail voluntário</label>
-                    <input type="email" id="loginEmail" required class="w-full p-2.5 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">E-mail voluntário</label>
+                    <input type="email" id="loginEmail" placeholder="seu.email@gmail.com" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500 text-sm bg-gray-50">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase text-gray-600">Senha de Acesso</label>
-                    <input type="password" id="loginSenha" required class="w-full p-2.5 border border-[#D9D9D9] rounded focus:outline-none focus:border-red-500 text-sm">
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Senha de Acesso</label>
+                    <input type="password" id="loginSenha" placeholder="••••••••" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500 text-sm bg-gray-50">
                 </div>
-                <button type="submit" class="w-full bg-cv-red hover-cv-red text-white font-bold py-2.5 rounded shadow transition text-sm uppercase mt-2">
+                <button type="submit" id="btnLoginSubmit" class="w-full bg-cv-red hover-cv-red text-white font-bold py-3 rounded-lg shadow-md transition text-sm uppercase tracking-wider mt-2 cursor-pointer">
                     🔓 Entrar no Sistema
                 </button>
             </form>
-            <p id="loginErro" class="text-xs text-red-600 mt-2 hidden">E-mail ou senha incorretos.</p>
+            <p id="loginErro" class="text-xs text-red-600 font-bold mt-4 hidden bg-red-50 p-2 rounded border border-red-200"></p>
         </div>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL -->
+    <!-- CONTEÚDO PRINCIPAL (EXIBIDO APÓS AUTENTICAÇÃO) -->
     <div id="conteudoApp" class="hidden">
         <!-- CABEÇALHO -->
         <header class="bg-cv-red text-white p-4 text-center shadow-md sticky top-0 z-40 flex justify-between items-center">
@@ -110,7 +62,7 @@
                 <h1 class="text-md font-bold tracking-wide uppercase">Cruz Vermelha Brasileira</h1>
                 <p class="text-[10px] opacity-90">Filial do Estado do Pará | Busca & Paradeiro</p>
             </div>
-            <button onclick="fazerLogout()" class="text-xs bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded">Sair</button>
+            <button onclick="fazerLogout()" class="text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer">Sair</button>
         </header>
 
         <main class="max-w-md mx-auto mt-4 px-4">
@@ -242,31 +194,30 @@
                         </div>
                     </div>
 
-                    <!-- 📍 FOTO COM GEOLOCALIZAÇÃO AUTOMÁTICA (COMPATÍVEL COM IPHONE/SAFARI) -->
-<div class="bg-gray-50 p-3 rounded-lg border border-dashed border-gray-400 text-center">
-    <label class="block text-xs font-bold uppercase text-gray-600 mb-1">📷 Foto com Geolocalização GPS</label>
-    <p class="text-[10px] text-gray-500 mb-2">A imagem receberá o carimbo automático de GPS, data e hora.</p>
-    
-    <!-- Input direto acionando a câmera -->
-    <input type="file" id="fotoInput" accept="image/*" capture="environment" class="hidden">
-    
-    <button type="button" onclick="iniciarCaptura()" class="bg-gray-700 text-white px-3 py-2 rounded text-xs font-semibold shadow hover:bg-gray-800 transition flex items-center justify-center gap-1 mx-auto">
-        <span>📍</span> Tirar Foto / Selecionar Imagem
-    </button>
-    
-    <div id="statusGps" class="text-[10px] text-amber-700 mt-1 font-semibold hidden">Obtendo coordenadas do satélite...</div>
+                    <!-- FOTO COM GEOLOCALIZAÇÃO -->
+                    <div class="bg-gray-50 p-3 rounded-lg border border-dashed border-gray-400 text-center">
+                        <label class="block text-xs font-bold uppercase text-gray-600 mb-1">📷 Foto com Geolocalização GPS</label>
+                        <p class="text-[10px] text-gray-500 mb-2">A imagem receberá o carimbo automático de GPS, data e hora.</p>
+                        
+                        <input type="file" id="fotoInput" accept="image/*" capture="environment" class="hidden">
+                        
+                        <button type="button" onclick="iniciarCaptura()" class="bg-gray-700 text-white px-3 py-2 rounded text-xs font-semibold shadow hover:bg-gray-800 transition flex items-center justify-center gap-1 mx-auto cursor-pointer">
+                            <span>📍</span> Tirar Foto / Selecionar Imagem
+                        </button>
+                        
+                        <div id="statusGps" class="text-[10px] text-amber-700 mt-1 font-semibold hidden">Obtendo coordenadas do satélite...</div>
 
-    <div id="previewContainer" class="mt-3 hidden flex flex-col items-center">
-        <img id="fotoPreview" src="" class="h-44 w-full object-contain rounded-md border shadow-sm bg-black">
-        <p class="text-[10px] text-green-700 font-bold mt-1">✓ Foto Carimbada com Sucesso</p>
-    </div>
-</div>
+                        <div id="previewContainer" class="mt-3 hidden flex flex-col items-center">
+                            <img id="fotoPreview" src="" class="h-44 w-full object-contain rounded-md border shadow-sm bg-black">
+                            <p class="text-[10px] text-green-700 font-bold mt-1">✓ Foto Carimbada com Sucesso</p>
+                        </div>
+                    </div>
 
                     <div class="flex gap-2">
-                        <button type="submit" class="flex-1 bg-cv-red hover-cv-red text-white font-bold py-3 px-4 rounded-lg shadow transition uppercase tracking-wider text-sm mt-2">
+                        <button type="submit" class="flex-1 bg-cv-red hover-cv-red text-white font-bold py-3 px-4 rounded-lg shadow transition uppercase tracking-wider text-sm mt-2 cursor-pointer">
                             💾 Salvar Ficha
                         </button>
-                        <button type="button" id="btnCancelarEdicao" onclick="cancelarEdicao()" class="hidden bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg shadow transition text-sm mt-2">
+                        <button type="button" id="btnCancelarEdicao" onclick="cancelarEdicao()" class="hidden bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg shadow transition text-sm mt-2 cursor-pointer">
                             Cancelar
                         </button>
                     </div>
@@ -286,7 +237,7 @@
                     <div class="flex gap-2 items-center">
                         <label class="text-[11px] font-bold text-gray-500 uppercase whitespace-nowrap">Por Data:</label>
                         <input type="date" id="filtroData" onchange="buscarFichas()" class="w-full p-1.5 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-xs">
-                        <button onclick="limparFiltroData()" class="text-xs text-gray-500 hover:text-red-500 px-1 font-bold">✖</button>
+                        <button onclick="limparFiltroData()" class="text-xs text-gray-500 hover:text-red-500 px-1 font-bold cursor-pointer">✖</button>
                     </div>
                 </div>
 
@@ -297,415 +248,425 @@
         </main>
     </div>
 
-    <!-- SCRIPT LOGIC -->
-<script>
-    // Configurações Oficiais do Supabase
-    const SUPABASE_URL = "https://lugixdejmgmwqntjujkg.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Z2l4ZGVqbWdtd3FudGp1amtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3OTQ2NjIsImV4cCI6MjA5OTM3MDY2Mn0.ExypL-sdfxa0DEjBm8z6etTzA2W7Ln-hG9_W8sj22w8";
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    let fotoBase64 = "";
-
-    function resetarDataHoraCampos() {
-        const agora = new Date();
-        document.getElementById('data_recebimento').value = agora.toISOString().split('T')[0];
-        document.getElementById('hora_recebimento').value = agora.toTimeString().split(' ')[0].substring(0,5);
-        document.getElementById('data_entrega').value = "";
-        document.getElementById('hora_entrega').value = "";
-    }
-
-    function verificarOutroVinculo() {
-        const vinculo = document.getElementById('vinculo_responsavel').value;
-        const divOutro = document.getElementById('campoOutroVinculo');
-        if (vinculo === "Outro") {
-            divOutro.classList.remove('hidden');
-            document.getElementById('outro_vinculo').setAttribute('required', 'required');
-        } else {
-            divOutro.classList.add('hidden');
-            document.getElementById('outro_vinculo').removeAttribute('required');
-        }
-    }
-
-    function iniciarCaptura() {
-        const statusGps = document.getElementById('statusGps');
-        statusGps.textContent = "Obtendo GPS...";
-        statusGps.classList.remove('hidden');
-
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude.toFixed(6);
-                    const lon = position.coords.longitude.toFixed(6);
-                    document.getElementById('geolocalizacao_coords').value = `${lat}, ${lon}`;
-                    statusGps.textContent = "GPS Detectado!";
-                },
-                (error) => {
-                    console.warn("GPS desativado ou erro:", error);
-                    document.getElementById('geolocalizacao_coords').value = "Sem Sinal GPS";
-                    statusGps.textContent = "Foto sem GPS (Apenas Data/Hora).";
-                },
-                { enableHighAccuracy: true, timeout: 5000 }
-            );
-        }
-
-        document.getElementById('fotoInput').click();
-    }
-
-    document.getElementById('fotoInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-
-                    ctx.drawImage(img, 0, 0);
-
-                    const alturaFaixa = Math.max(60, img.height * 0.08);
-                    ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-                    ctx.fillRect(0, img.height - alturaFaixa, img.width, alturaFaixa);
-
-                    ctx.fillStyle = "#FFFFFF";
-                    const tamanhoFonte = Math.max(14, img.height * 0.022);
-                    ctx.font = `bold ${tamanhoFonte}px sans-serif`;
-
-                    const coords = document.getElementById('geolocalizacao_coords').value || "Buscando GPS...";
-                    const agora = new Date().toLocaleString('pt-BR');
-
-                    const textoLinha1 = `CVB POLO BRAGANÇA - PA | ${agora}`;
-                    const textoLinha2 = `📍 LAT/LON: ${coords}`;
-
-                    ctx.fillText(textoLinha1, 15, img.height - (alturaFaixa * 0.55));
-                    ctx.fillStyle = "#FFCC00";
-                    ctx.fillText(textoLinha2, 15, img.height - (alturaFaixa * 0.18));
-
-                    fotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
-                    document.getElementById('fotoPreview').src = fotoBase64;
-                    document.getElementById('previewContainer').classList.remove('hidden');
-                    document.getElementById('statusGps').classList.add('hidden');
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    // LOGIN AJUSTADO PARA O SEU LAYOUT ORIGINAL
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
+    <!-- SCRIPT DE LÓGICA DO SISTEMA -->
+    <script>
+        const SUPABASE_URL = "https://lugixdejmgmwqntjujkg.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Z2l4ZGVqbWdtd3FudGp1amtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3OTQ2NjIsImV4cCI6MjA5OTM3MDY2Mn0.ExypL-sdfxa0DEjBm8z6etTzA2W7Ln-hG9_W8sj22w8";
         
-        const emailInput = document.getElementById('loginEmail');
-        const senhaInput = document.getElementById('loginSenha');
-        const erroEl = document.getElementById('loginErro');
-
-        if (!emailInput || !senhaInput) {
-            alert("Erro nos campos de login. Verifique o HTML.");
-            return;
-        }
-
-        const email = emailInput.value.trim();
-        const senha = senhaInput.value.trim();
-
-        if (erroEl) erroEl.classList.add('hidden');
-
+        let supabaseClient;
         try {
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ 
-                email: email, 
-                password: senha 
-            });
-
-            if (error) {
-                if (erroEl) {
-                    erroEl.textContent = "Acesso negado: " + (error.message === "Invalid login credentials" ? "E-mail ou senha incorretos." : error.message);
-                    erroEl.classList.remove('hidden');
-                } else {
-                    alert("Acesso negado: E-mail ou senha incorretos.");
-                }
-            } else if (data && data.user) {
-                document.getElementById('telaLogin').classList.add('hidden');
-                document.getElementById('conteudoApp').classList.remove('hidden');
-                resetarDataHoraCampos();
-                buscarFichas();
-            }
-        } catch (err) {
-            console.error("Erro ao autenticar:", err);
-            if (erroEl) {
-                erroEl.textContent = "Falha de conexão. Tente novamente.";
-                erroEl.classList.remove('hidden');
-            }
-        }
-    });
-
-    function fazerLogout() {
-        supabaseClient.auth.signOut();
-        document.getElementById('telaLogin').classList.remove('hidden');
-        document.getElementById('conteudoApp').classList.add('hidden');
-        document.getElementById('loginForm').reset();
-    }
-
-    function limparFiltroData() {
-        document.getElementById('filtroData').value = "";
-        buscarFichas();
-    }
-
-    // SALVAR FICHA
-    document.getElementById('fichaForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        const idEdicao = document.getElementById('editId').value;
-        const dados = {
-            nome_crianca: document.getElementById('nome_crianca').value,
-            idade: document.getElementById('idade').value,
-            endereco: document.getElementById('endereco').value,
-            bairro: document.getElementById('bairro').value,
-            telefone: document.getElementById('telefone').value,
-            rg: document.getElementById('rg').value,
-            nome_responsavel: document.getElementById('nome_responsavel').value,
-            vinculo_responsavel: document.getElementById('vinculo_responsavel').value,
-            outro_vinculo: document.getElementById('vinculo_responsavel').value === "Outro" ? document.getElementById('outro_vinculo').value : null,
-            responsavel: document.getElementById('responsavel').value,
-            coordenador: document.getElementById('coordenador').value,
-            posto: document.getElementById('posto').value,
-            cidade: document.getElementById('cidade').value,
-            data_recebimento: document.getElementById('data_recebimento').value,
-            hora_recebimento: document.getElementById('hora_recebimento').value,
-            data_entrega: document.getElementById('data_entrega').value || null,
-            hora_entrega: document.getElementById('hora_entrega').value || null,
-            geolocalizacao: document.getElementById('geolocalizacao_coords').value || null,
-            foto: fotoBase64
-        };
-
-        try {
-            if (idEdicao) {
-                const { error } = await supabaseClient.from('fichas').update(dados).eq('id', idEdicao);
-                if (error) throw error;
-                alert("Ficha atualizada com sucesso!");
-            } else {
-                const { data, error } = await supabaseClient.from('fichas').insert([dados]).select();
-                if (error) throw error;
-                alert(`Ficha Nº ${data[0].numero || data[0].id} salva com foto geolocalizada.`);
-                gerarPDF(data[0]);
-            }
-            cancelarEdicao();
-            buscarFichas();
-        } catch (err) {
-            console.error("Erro ao salvar ficha:", err);
-            alert("Erro ao conectar com a nuvem.");
-        }
-    });
-
-    function calcularTempoAtendimento(dataRec, horaRec, dataEnt, horaEnt) {
-        if (!dataEnt || !horaEnt) return "Em atendimento";
-        try {
-            const rec = new Date(`${dataRec}T${horaRec.substring(0,5)}`);
-            const ent = new Date(`${dataEnt}T${horaEnt.substring(0,5)}`);
-            const diffMs = ent - rec;
-            if (diffMs < 0) return "Duração inválida";
-            
-            const totalMin = Math.floor(diffMs / 60000);
-            const horas = Math.floor(totalMin / 60);
-            const minutos = totalMin % 60;
-            
-            if (horas === 0) return `${minutos}min`;
-            return `${horas}h ${minutos}min`;
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         } catch (e) {
-            return "Erro no cálculo";
-        }
-    }
-
-    async function buscarFichas() {
-        const query = document.getElementById('buscaInput').value;
-        const dataFiltro = document.getElementById('filtroData').value;
-        const lista = document.getElementById('listaFichas');
-        lista.innerHTML = "";
-
-        let rpcQuery = supabaseClient.from('fichas').select('*');
-
-        if (query.length >= 2) {
-            rpcQuery = rpcQuery.or(`nome_crianca.ilike.%${query}%,nome_responsavel.ilike.%${query}%,bairro.ilike.%${query}%`);
-        }
-        if (dataFiltro) {
-            rpcQuery = rpcQuery.eq('data_recebimento', dataFiltro);
+            console.error("Erro na inicialização do Supabase:", e);
         }
 
-        const { data, error } = await rpcQuery.order('id', { ascending: false });
+        let fotoBase64 = "";
 
-        if (error) {
-            console.error("Erro ao carregar fichas:", error);
-            lista.innerHTML = '<p class="text-center text-xs text-red-500">Erro ao carregar registros do banco.</p>';
-            return;
-        }
-
-        if (!data || data.length === 0) {
-            lista.innerHTML = '<p class="text-center text-xs text-gray-400">Nenhum registro encontrado.</p>';
-            return;
-        }
-
-        data.forEach(f => {
-            const tempo = calcularTempoAtendimento(f.data_recebimento, f.hora_recebimento, f.data_entrega, f.hora_entrega);
-            const parentesco = f.vinculo_responsavel === "Outro" ? f.outro_vinculo : f.vinculo_responsavel;
-
-            const div = document.createElement('div');
-            div.className = "p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs space-y-2";
-            div.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="font-bold text-gray-800">Nº ${f.numero || f.id} - ${f.nome_crianca}</p>
-                        <p class="text-gray-500">Resp: ${f.nome_responsavel} (${parentesco})</p>
-                    </div>
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold ${f.data_entrega ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                        ${f.data_entrega ? 'Entregue' : 'Em Atendimento'}
-                    </span>
-                </div>
-                <div class="grid grid-cols-2 gap-1 text-[10px] text-gray-600 bg-white p-2 rounded border border-gray-100">
-                    <p>📥 Rec: ${f.data_recebimento} às ${f.hora_recebimento ? f.hora_recebimento.substring(0,5) : ''}</p>
-                    <p>📤 Ent: ${f.data_entrega ? `${f.data_entrega} às ${f.hora_entrega.substring(0,5)}` : 'Pendente'}</p>
-                    <p class="col-span-2 font-semibold text-cv-red border-t border-gray-100 pt-1 mt-1 flex justify-between">
-                        <span>Duração: ${tempo}</span>
-                        <span class="text-gray-400">📍 ${f.geolocalizacao || 'Sem GPS'}</span>
-                    </p>
-                </div>
-                <div class="flex gap-1 justify-end">
-                    <button onclick='carregarFichaEdicao(${JSON.stringify(f)})' class="bg-amber-600 text-white px-2 py-1 rounded text-[10px] font-semibold">Editar</button>
-                    <button onclick='gerarPDF(${JSON.stringify(f)})' class="bg-cv-red text-white px-2 py-1 rounded text-[10px] font-semibold">PDF</button>
-                </div>
-            `;
-            lista.appendChild(div);
+        // VERIFICA SE JÁ EXISTE SESSÃO ATIVA
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (!supabaseClient) return;
+            const { data } = await supabaseClient.auth.getSession();
+            if (data && data.session) {
+                exibirAplicativo();
+            }
         });
-    }
 
-    function carregarFichaEdicao(f) {
-        document.getElementById('editId').value = f.id;
-        document.getElementById('posto').value = f.posto;
-        document.getElementById('cidade').value = f.cidade;
-        document.getElementById('nome_crianca').value = f.nome_crianca;
-        document.getElementById('idade').value = f.idade;
-        document.getElementById('endereco').value = f.endereco;
-        document.getElementById('bairro').value = f.bairro;
-        document.getElementById('telefone').value = f.telefone;
-        document.getElementById('rg').value = f.rg;
-        document.getElementById('nome_responsavel').value = f.nome_responsavel || "";
-        document.getElementById('vinculo_responsavel').value = f.vinculo_responsavel || "Mãe";
-        document.getElementById('responsavel').value = f.responsavel;
-        document.getElementById('coordenador').value = f.coordenador;
-        document.getElementById('data_recebimento').value = f.data_recebimento;
-        document.getElementById('hora_recebimento').value = f.hora_recebimento ? f.hora_recebimento.substring(0,5) : "";
-        document.getElementById('data_entrega').value = f.data_entrega || "";
-        document.getElementById('hora_entrega').value = f.hora_entrega ? f.hora_entrega.substring(0,5) : "";
-
-        if(f.foto) {
-            fotoBase64 = f.foto;
-            document.getElementById('fotoPreview').src = f.foto;
-            document.getElementById('previewContainer').classList.remove('hidden');
-        }
-
-        document.getElementById('tituloForm').textContent = "Alterar Registro";
-        document.getElementById('badgeEdicao').classList.remove('hidden');
-        document.getElementById('btnCancelarEdicao').classList.remove('hidden');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function cancelarEdicao() {
-        document.getElementById('fichaForm').reset();
-        document.getElementById('editId').value = "";
-        document.getElementById('previewContainer').classList.add('hidden');
-        document.getElementById('campoOutroVinculo').classList.add('hidden');
-        fotoBase64 = "";
-        resetarDataHoraCampos();
-        document.getElementById('tituloForm').textContent = "Nova Ficha de Busca";
-        document.getElementById('badgeEdicao').classList.add('hidden');
-        document.getElementById('btnCancelarEdicao').classList.add('hidden');
-    }
-
-    function gerarPDF(dados) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-
-        doc.setFillColor(214, 0, 28); 
-        doc.rect(10, 10, 190, 8, 'F');
-        
-        doc.setFont("Helvetica", "bold");
-        doc.setFontSize(11);
-        doc.setTextColor(255, 255, 255);
-        doc.text("CRUZ VERMELHA BRASILEIRA - FILIAL DO ESTADO DO PARÁ", 15, 16);
-        
-        doc.setTextColor(32, 32, 32);
-        doc.setFontSize(14);
-        doc.text("FICHA DE BUSCA DE PARADEIRO", 10, 30);
-        doc.setFontSize(10);
-        doc.text(`Ficha Sequencial Nº: ${dados.numero || dados.id}`, 150, 30);
-        
-        doc.line(10, 33, 200, 33); 
-
-        doc.setFont("Helvetica", "normal");
-        doc.text(`NOME DA CRIANÇA: ${dados.nome_crianca.toUpperCase()}`, 10, 43);
-        doc.text(`IDADE: ${dados.idade}`, 10, 51);
-        
-        doc.setFont("Helvetica", "bold");
-        doc.text("RESPONSÁVEL / TUTOR:", 10, 61);
-        doc.setFont("Helvetica", "normal");
-        const parentesco = dados.vinculo_responsavel === "Outro" ? dados.outro_vinculo : dados.vinculo_responsavel;
-        doc.text(`NOME: ${dados.nome_responsavel.toUpperCase()}`, 20, 68);
-        doc.text(`VÍNCULO/PARENTESCO: ${parentesco ? parentesco.toUpperCase() : ''}`, 20, 75);
-        doc.text(`NÚMERO DA CARTEIRA DE IDENTIDADE (RG): ${dados.rg}`, 20, 82);
-
-        doc.text(`ENDEREÇO RESIDENCIAL: ${dados.endereco.toUpperCase()}`, 10, 93);
-        doc.text(`BAIRRO: ${dados.bairro.toUpperCase()}`, 10, 100);
-        doc.text(`TELEFONE DE CONTATO: ${dados.telefone}`, 120, 100);
-        
-        doc.line(10, 106, 200, 106);
-        doc.setFont("Helvetica", "bold");
-        doc.text("CONTROLE DE TEMPO E GEOLOCALIZAÇÃO", 10, 113);
-        doc.setFont("Helvetica", "normal");
-        doc.text(`Horário de Recebimento: ${dados.data_recebimento} às ${dados.hora_recebimento ? dados.hora_recebimento.substring(0,5) : ''}`, 10, 120);
-        
-        const entregaStr = dados.data_entrega ? `${dados.data_entrega} às ${dados.hora_entrega.substring(0,5)}` : 'PENDENTE (SOB CUIDADOS DO POSTO)';
-        doc.text(`Horário de Entrega: ${entregaStr}`, 10, 127);
-        
-        const tempo = calcularTempoAtendimento(dados.data_recebimento, dados.hora_recebimento, dados.data_entrega, dados.hora_entrega);
-        doc.setFont("Helvetica", "bold");
-        doc.text(`Tempo Total em Atendimento: ${tempo.toUpperCase()}`, 10, 134);
-        doc.text(`Coordenadas de GPS: ${dados.geolocalizacao || 'Registrado na foto'}`, 10, 141);
-
-        doc.setFont("Helvetica", "normal");
-        doc.text(`${dados.cidade.toUpperCase()}: ${dados.data_recebimento}`, 10, 151);
-        
-        doc.text("____________________________________________________________", 10, 168);
-        doc.text(`COORDENADOR DO POSTO: ${dados.coordenador.toUpperCase()}`, 10, 174);
-        doc.text(`POSTO: ${dados.posto.toUpperCase()}`, 10, 180);
-
-        doc.text("____________________________________________________________", 10, 197);
-        doc.text(`VOLUNTÁRIO RESPONSÁVEL: ${dados.responsavel.toUpperCase()}`, 10, 203);
-
-        if (dados.foto) {
-            try {
-                doc.addImage(dados.foto, 'JPEG', 140, 38, 55, 55);
-            } catch(e) { console.error("Erro na imagem PDF", e); }
-        }
-
-        doc.save(`Ficha_${dados.numero || dados.id}_${dados.nome_crianca.replace(/ /g, "_")}.pdf`);
-    }
-
-    // REGISTRO DE SERVICE WORKER PARA APP (PWA)
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW PWA:', err));
-        });
-    }
-
-    // VERIFICA SESSÃO AO CARREGAR A PÁGINA
-    window.addEventListener('DOMContentLoaded', async () => {
-        const { data } = await supabaseClient.auth.getSession();
-        if (data?.session) {
+        function exibirAplicativo() {
             document.getElementById('telaLogin').classList.add('hidden');
             document.getElementById('conteudoApp').classList.remove('hidden');
             resetarDataHoraCampos();
             buscarFichas();
         }
-    });
-</script>
+
+        function resetarDataHoraCampos() {
+            const agora = new Date();
+            document.getElementById('data_recebimento').value = agora.toISOString().split('T')[0];
+            document.getElementById('hora_recebimento').value = agora.toTimeString().split(' ')[0].substring(0,5);
+            document.getElementById('data_entrega').value = "";
+            document.getElementById('hora_entrega').value = "";
+        }
+
+        function verificarOutroVinculo() {
+            const vinculo = document.getElementById('vinculo_responsavel').value;
+            const divOutro = document.getElementById('campoOutroVinculo');
+            if (vinculo === "Outro") {
+                divOutro.classList.remove('hidden');
+                document.getElementById('outro_vinculo').setAttribute('required', 'required');
+            } else {
+                divOutro.classList.add('hidden');
+                document.getElementById('outro_vinculo').removeAttribute('required');
+            }
+        }
+
+        function iniciarCaptura() {
+            const statusGps = document.getElementById('statusGps');
+            statusGps.textContent = "Obtendo GPS...";
+            statusGps.classList.remove('hidden');
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude.toFixed(6);
+                        const lon = position.coords.longitude.toFixed(6);
+                        document.getElementById('geolocalizacao_coords').value = `${lat}, ${lon}`;
+                        statusGps.textContent = "GPS Detectado com Sucesso!";
+                    },
+                    (error) => {
+                        console.warn("GPS indisponível ou negado:", error);
+                        document.getElementById('geolocalizacao_coords').value = "Sem Sinal GPS";
+                        statusGps.textContent = "Foto sem GPS (Apenas Data e Hora).";
+                    },
+                    { enableHighAccuracy: true, timeout: 6000 }
+                );
+            } else {
+                document.getElementById('geolocalizacao_coords').value = "Sem Suporte a GPS";
+            }
+            document.getElementById('fotoInput').click();
+        }
+
+        document.getElementById('fotoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+
+                        ctx.drawImage(img, 0, 0);
+
+                        const alturaFaixa = Math.max(60, img.height * 0.08);
+                        ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+                        ctx.fillRect(0, img.height - alturaFaixa, img.width, alturaFaixa);
+
+                        ctx.fillStyle = "#FFFFFF";
+                        const tamanhoFonte = Math.max(14, img.height * 0.022);
+                        ctx.font = `bold ${tamanhoFonte}px sans-serif`;
+
+                        const coords = document.getElementById('geolocalizacao_coords').value || "Buscando GPS...";
+                        const agora = new Date().toLocaleString('pt-BR');
+
+                        const textoLinha1 = `CVB POLO BRAGANÇA - PA | ${agora}`;
+                        const textoLinha2 = `📍 LAT/LON: ${coords}`;
+
+                        ctx.fillText(textoLinha1, 15, img.height - (alturaFaixa * 0.55));
+                        ctx.fillStyle = "#FFCC00";
+                        ctx.fillText(textoLinha2, 15, img.height - (alturaFaixa * 0.18));
+
+                        fotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
+                        document.getElementById('fotoPreview').src = fotoBase64;
+                        document.getElementById('previewContainer').classList.remove('hidden');
+                        document.getElementById('statusGps').classList.add('hidden');
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // AUTENTICAÇÃO DE LOGIN
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value.trim();
+            const senha = document.getElementById('loginSenha').value.trim();
+            const erroEl = document.getElementById('loginErro');
+            const btnSubmit = document.getElementById('btnLoginSubmit');
+
+            erroEl.classList.add('hidden');
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = "Verificando...";
+
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ 
+                    email: email, 
+                    password: senha 
+                });
+
+                if (error) {
+                    erroEl.textContent = error.message === "Invalid login credentials" 
+                        ? "E-mail ou senha incorretos." 
+                        : "Erro de acesso: " + error.message;
+                    erroEl.classList.remove('hidden');
+                } else if (data && data.user) {
+                    exibirAplicativo();
+                }
+            } catch (err) {
+                console.error("Erro no login:", err);
+                erroEl.textContent = "Falha ao conectar com o servidor.";
+                erroEl.classList.remove('hidden');
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = "🔓 Entrar no Sistema";
+            }
+        });
+
+        async function fazerLogout() {
+            await supabaseClient.auth.signOut();
+            document.getElementById('telaLogin').classList.remove('hidden');
+            document.getElementById('conteudoApp').classList.add('hidden');
+            document.getElementById('loginForm').reset();
+        }
+
+        function limparFiltroData() {
+            document.getElementById('filtroData').value = "";
+            buscarFichas();
+        }
+
+        // SALVAR OU EDITAR FICHA
+        document.getElementById('fichaForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const idEdicao = document.getElementById('editId').value;
+            const dados = {
+                nome_crianca: document.getElementById('nome_crianca').value,
+                idade: document.getElementById('idade').value,
+                endereco: document.getElementById('endereco').value,
+                bairro: document.getElementById('bairro').value,
+                telefone: document.getElementById('telefone').value,
+                rg: document.getElementById('rg').value,
+                nome_responsavel: document.getElementById('nome_responsavel').value,
+                vinculo_responsavel: document.getElementById('vinculo_responsavel').value,
+                outro_vinculo: document.getElementById('vinculo_responsavel').value === "Outro" ? document.getElementById('outro_vinculo').value : null,
+                responsavel: document.getElementById('responsavel').value,
+                coordenador: document.getElementById('coordenador').value,
+                posto: document.getElementById('posto').value,
+                cidade: document.getElementById('cidade').value,
+                data_recebimento: document.getElementById('data_recebimento').value,
+                hora_recebimento: document.getElementById('hora_recebimento').value,
+                data_entrega: document.getElementById('data_entrega').value || null,
+                hora_entrega: document.getElementById('hora_entrega').value || null,
+                geolocalizacao: document.getElementById('geolocalizacao_coords').value || null,
+                foto: fotoBase64
+            };
+
+            try {
+                if (idEdicao) {
+                    const { error } = await supabaseClient.from('fichas').update(dados).eq('id', idEdicao);
+                    if (error) throw error;
+                    alert("Ficha atualizada com sucesso!");
+                } else {
+                    const { data, error } = await supabaseClient.from('fichas').insert([dados]).select();
+                    if (error) throw error;
+                    alert(`Ficha Nº ${data[0].numero || data[0].id} salva com sucesso.`);
+                    gerarPDF(data[0]);
+                }
+                cancelarEdicao();
+                buscarFichas();
+            } catch (err) {
+                console.error("Erro ao salvar:", err);
+                alert("Erro ao gravar os dados. Verifique a conexão.");
+            }
+        });
+
+        function calcularTempoAtendimento(dataRec, horaRec, dataEnt, horaEnt) {
+            if (!dataEnt || !horaEnt) return "Em atendimento";
+            try {
+                const rec = new Date(`${dataRec}T${horaRec.substring(0,5)}`);
+                const ent = new Date(`${dataEnt}T${horaEnt.substring(0,5)}`);
+                const diffMs = ent - rec;
+                if (diffMs < 0) return "Tempo inválido";
+                
+                const totalMin = Math.floor(diffMs / 60000);
+                const horas = Math.floor(totalMin / 60);
+                const minutos = totalMin % 60;
+                
+                if (horas === 0) return `${minutos}min`;
+                return `${horas}h ${minutos}min`;
+            } catch (e) {
+                return "--";
+            }
+        }
+
+        async function buscarFichas() {
+            const query = document.getElementById('buscaInput').value;
+            const dataFiltro = document.getElementById('filtroData').value;
+            const lista = document.getElementById('listaFichas');
+            lista.innerHTML = "";
+
+            let rpcQuery = supabaseClient.from('fichas').select('*');
+
+            if (query.length >= 2) {
+                rpcQuery = rpcQuery.or(`nome_crianca.ilike.%${query}%,nome_responsavel.ilike.%${query}%,bairro.ilike.%${query}%`);
+            }
+            if (dataFiltro) {
+                rpcQuery = rpcQuery.eq('data_recebimento', dataFiltro);
+            }
+
+            const { data, error } = await rpcQuery.order('id', { ascending: false });
+
+            if (error) {
+                console.error("Erro na busca:", error);
+                lista.innerHTML = '<p class="text-center text-xs text-red-500">Erro ao carregar dados do banco.</p>';
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                lista.innerHTML = '<p class="text-center text-xs text-gray-400">Nenhum registro encontrado.</p>';
+                return;
+            }
+
+            data.forEach(f => {
+                const tempo = calcularTempoAtendimento(f.data_recebimento, f.hora_recebimento, f.data_entrega, f.hora_entrega);
+                const parentesco = f.vinculo_responsavel === "Outro" ? f.outro_vinculo : f.vinculo_responsavel;
+
+                const div = document.createElement('div');
+                div.className = "p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs space-y-2";
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-bold text-gray-800">Nº ${f.numero || f.id} - ${f.nome_crianca}</p>
+                            <p class="text-gray-500">Resp: ${f.nome_responsavel} (${parentesco})</p>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${f.data_entrega ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${f.data_entrega ? 'Entregue' : 'Em Atendimento'}
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1 text-[10px] text-gray-600 bg-white p-2 rounded border border-gray-100">
+                        <p>📥 Rec: ${f.data_recebimento} às ${f.hora_recebimento ? f.hora_recebimento.substring(0,5) : ''}</p>
+                        <p>📤 Ent: ${f.data_entrega ? `${f.data_entrega} às ${f.hora_entrega.substring(0,5)}` : 'Pendente'}</p>
+                        <p class="col-span-2 font-semibold text-cv-red border-t border-gray-100 pt-1 mt-1 flex justify-between">
+                            <span>Duração: ${tempo}</span>
+                            <span class="text-gray-400">📍 ${f.geolocalizacao || 'Sem GPS'}</span>
+                        </p>
+                    </div>
+                    <div class="flex gap-1 justify-end">
+                        <button onclick='carregarFichaEdicao(${JSON.stringify(f)})' class="bg-amber-600 text-white px-2.5 py-1 rounded text-[10px] font-semibold cursor-pointer">Editar</button>
+                        <button onclick='gerarPDF(${JSON.stringify(f)})' class="bg-cv-red text-white px-2.5 py-1 rounded text-[10px] font-semibold cursor-pointer">PDF</button>
+                    </div>
+                `;
+                lista.appendChild(div);
+            });
+        }
+
+        function carregarFichaEdicao(f) {
+            document.getElementById('editId').value = f.id;
+            document.getElementById('posto').value = f.posto || "";
+            document.getElementById('cidade').value = f.cidade || "Belém";
+            document.getElementById('nome_crianca').value = f.nome_crianca || "";
+            document.getElementById('idade').value = f.idade || "";
+            document.getElementById('data_recebimento').value = f.data_recebimento || "";
+            document.getElementById('hora_recebimento').value = f.hora_recebimento ? f.hora_recebimento.substring(0,5) : "";
+            document.getElementById('data_entrega').value = f.data_entrega || "";
+            document.getElementById('hora_entrega').value = f.hora_entrega ? f.hora_entrega.substring(0,5) : "";
+            document.getElementById('nome_responsavel').value = f.nome_responsavel || "";
+            document.getElementById('vinculo_responsavel').value = f.vinculo_responsavel || "Mãe";
+            
+            if (f.vinculo_responsavel === "Outro") {
+                document.getElementById('campoOutroVinculo').classList.remove('hidden');
+                document.getElementById('outro_vinculo').value = f.outro_vinculo || "";
+            } else {
+                document.getElementById('campoOutroVinculo').classList.add('hidden');
+            }
+
+            document.getElementById('rg').value = f.rg || "";
+            document.getElementById('bairro').value = f.bairro || "";
+            document.getElementById('telefone').value = f.telefone || "";
+            document.getElementById('endereco').value = f.endereco || "";
+            document.getElementById('responsavel').value = f.responsavel || "";
+            document.getElementById('coordenador').value = f.coordenador || "";
+            document.getElementById('geolocalizacao_coords').value = f.geolocalizacao || "";
+
+            if (f.foto) {
+                fotoBase64 = f.foto;
+                document.getElementById('fotoPreview').src = f.foto;
+                document.getElementById('previewContainer').classList.remove('hidden');
+            } else {
+                fotoBase64 = "";
+                document.getElementById('previewContainer').classList.add('hidden');
+            }
+
+            document.getElementById('tituloForm').textContent = "Editar Ficha Nº " + (f.numero || f.id);
+            document.getElementById('badgeEdicao').classList.remove('hidden');
+            document.getElementById('btnCancelarEdicao').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelarEdicao() {
+            document.getElementById('fichaForm').reset();
+            document.getElementById('editId').value = "";
+            fotoBase64 = "";
+            document.getElementById('previewContainer').classList.add('hidden');
+            document.getElementById('tituloForm').textContent = "Nova Ficha de Busca";
+            document.getElementById('badgeEdicao').classList.add('hidden');
+            document.getElementById('btnCancelarEdicao').classList.add('hidden');
+            document.getElementById('campoOutroVinculo').classList.add('hidden');
+            resetarDataHoraCampos();
+        }
+
+        function gerarPDF(f) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Cabeçalho Vermelho
+            doc.setFillColor(214, 0, 28);
+            doc.rect(0, 0, 210, 25, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont("helvetica", "bold");
+            doc.text("CRUZ VERMELHA BRASILEIRA", 105, 12, { align: "center" });
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text("FILIAL DO ESTADO DO PARÁ | FICHA DE BUSCA E PARADEIRO", 105, 18, { align: "center" });
+
+            // Identificação da Ficha
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text(`REGISTRO Nº: ${f.numero || f.id}`, 14, 35);
+            doc.setFontSize(10);
+            doc.text(`Status: ${f.data_entrega ? 'ENTREGUE' : 'EM ATENDIMENTO'}`, 150, 35);
+
+            doc.setLineWidth(0.5);
+            doc.line(14, 38, 196, 38);
+
+            let y = 46;
+            const parentesco = f.vinculo_responsavel === "Outro" ? f.outro_vinculo : f.vinculo_responsavel;
+
+            const detalhes = [
+                ["Posto / Cidade:", `${f.posto || 'N/A'} - ${f.cidade || 'Belém'}`],
+                ["Criança:", `${f.nome_crianca} (${f.idade} anos)`],
+                ["Data / Hora Recebimento:", `${f.data_recebimento} às ${f.hora_recebimento}`],
+                ["Data / Hora Entrega:", f.data_entrega ? `${f.data_entrega} às ${f.hora_entrega}` : 'Pendente'],
+                ["Responsável:", `${f.nome_responsavel} (${parentesco})`],
+                ["Documento (RG):", f.rg],
+                ["Telefone:", f.telefone],
+                ["Endereço:", `${f.endereco}, Bairro: ${f.bairro}`],
+                ["Voluntário Responsável:", f.responsavel],
+                ["Coordenador do Posto:", f.coordenador],
+                ["Geolocalização GPS:", f.geolocalizacao || 'Não registrada']
+            ];
+
+            detalhes.forEach(([label, valor]) => {
+                doc.setFont("helvetica", "bold");
+                doc.text(label, 14, y);
+                doc.setFont("helvetica", "normal");
+                doc.text(String(valor), 65, y);
+                y += 7;
+            });
+
+            if (f.foto) {
+                y += 5;
+                doc.setFont("helvetica", "bold");
+                doc.text("REGISTRO FOTOGRÁFICO COM GEOLOCALIZAÇÃO:", 14, y);
+                y += 5;
+                try {
+                    doc.addImage(f.foto, 'JPEG', 14, y, 110, 80);
+                } catch (e) {
+                    console.error("Erro ao desenhar imagem no PDF:", e);
+                }
+            }
+
+            doc.setFontSize(8);
+            doc.setTextColor(120, 120, 120);
+            doc.text("Documento gerado digitalmente pelo Sistema de Busca & Paradeiro - Cruz Vermelha PA", 105, 285, { align: "center" });
+
+            doc.save(`Ficha_CVB_${f.numero || f.id}_${f.nome_crianca.replace(/\s+/g, '_')}.pdf`);
+        }
+    </script>
+</body>
+</html>
