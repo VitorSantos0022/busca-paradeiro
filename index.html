@@ -30,8 +30,8 @@
 </head>
 <body class="bg-[#F5F5F5] text-[#202020] font-sans antialiased pb-10">
 
-    <!-- TELA DE LOGIN -->
-    <div id="telaLogin" class="fixed inset-0 bg-[#121212] flex items-center justify-center z-50 p-4">
+    <!-- TELA DE LOGIN (Fundo Claro Ajustado) -->
+    <div id="telaLogin" class="fixed inset-0 bg-gray-100 flex items-center justify-center z-50 p-4">
         <div class="bg-white p-6 rounded-xl shadow-2xl border border-gray-200 w-full max-w-sm text-center">
             <div class="w-16 h-16 bg-cv-red text-white flex items-center justify-center rounded-2xl mx-auto mb-3 text-3xl font-bold shadow-md">＋</div>
             <h2 class="text-lg font-bold text-gray-800 uppercase tracking-wide">Cruz Vermelha Brasileira</h2>
@@ -62,7 +62,7 @@
                 <h1 class="text-md font-bold tracking-wide uppercase">Cruz Vermelha Brasileira</h1>
                 <p class="text-[10px] opacity-90">Filial do Estado do Pará | Busca & Paradeiro</p>
             </div>
-            <button onclick="fazerLogout()" class="text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer">Sair</button>
+            <button id="btnSair" onclick="fazerLogout()" class="text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer">Sair</button>
         </header>
 
         <main class="max-w-md mx-auto mt-4 px-4">
@@ -231,13 +231,13 @@
                         <span class="text-2xl">📋</span>
                         <h2 class="text-lg font-bold text-cv-red">Histórico & Dashboard</h2>
                     </div>
-                    <button onclick="gerarPDFDashboard()" class="bg-gray-800 hover:bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow cursor-pointer">
+                    <button id="btnPdfDashboard" onclick="gerarPDFDashboard()" class="bg-gray-800 hover:bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow cursor-pointer">
                         📊 Gerar Dashboard PDF
                     </button>
                 </div>
                 
                 <div class="space-y-2 mb-4 bg-gray-50 p-2.5 rounded border border-[#D9D9D9]">
-                    <input type="text" id="buscaInput" oninput="buscarFichas()" placeholder="🔎 Nome, responsável, telefone ou bairro..." class="w-full p-2 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-xs">
+                    <input type="text" id="buscaInput" oninput="buscarFichasDebounce()" placeholder="🔎 Nome, responsável, telefone ou bairro..." class="w-full p-2 border border-[#D9D9D9] rounded bg-white focus:outline-none focus:border-red-500 text-xs">
                     
                     <div class="flex gap-2 items-center">
                         <label class="text-[11px] font-bold text-gray-500 uppercase whitespace-nowrap">Por Data:</label>
@@ -266,7 +266,7 @@
         }
 
         let fotoBase64 = "";
-        let ultimasFichasCarregadas = [];
+        let debounceTimer;
 
         window.addEventListener('DOMContentLoaded', async () => {
             if (!supabaseClient) return;
@@ -410,8 +410,13 @@
             }
         });
 
+        // FUNÇÃO SAIR CORRIGIDA
         async function fazerLogout() {
-            await supabaseClient.auth.signOut();
+            try {
+                await supabaseClient.auth.signOut();
+            } catch (err) {
+                console.error("Erro ao deslogar:", err);
+            }
             document.getElementById('telaLogin').classList.remove('hidden');
             document.getElementById('conteudoApp').classList.add('hidden');
             document.getElementById('loginForm').reset();
@@ -420,6 +425,13 @@
         function limparFiltroData() {
             document.getElementById('filtroData').value = "";
             buscarFichas();
+        }
+
+        function buscarFichasDebounce() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                buscarFichas();
+            }, 300);
         }
 
         // SALVAR OU EDITAR FICHA
@@ -490,22 +502,24 @@
             return `${horas}h ${restoMin}min`;
         }
 
+        // CARREGAMENTO OTIMIZADO DE FICHAS NA TELA
         async function buscarFichas() {
-            const query = document.getElementById('buscaInput').value;
+            const query = document.getElementById('buscaInput').value.trim();
             const dataFiltro = document.getElementById('filtroData').value;
             const lista = document.getElementById('listaFichas');
-            lista.innerHTML = "";
+            lista.innerHTML = '<p class="text-center text-xs text-gray-400">Carregando registros...</p>';
 
-            let rpcQuery = supabaseClient.from('fichas').select('*');
+            // Traz apenas campos necessários para a lista (evita trafegar fotos pesadas no histórico rápido)
+            let selectQuery = supabaseClient.from('fichas').select('id, numero, nome_crianca, nome_responsavel, vinculo_responsavel, outro_vinculo, data_recebimento, hora_recebimento, data_entrega, hora_entrega, geolocalizacao, bairro, idade, endereco, rg, telefone, responsavel, coordenador, posto, cidade');
 
             if (query.length >= 2) {
-                rpcQuery = rpcQuery.or(`nome_crianca.ilike.%${query}%,nome_responsavel.ilike.%${query}%,bairro.ilike.%${query}%`);
+                selectQuery = selectQuery.or(`nome_crianca.ilike.%${query}%,nome_responsavel.ilike.%${query}%,bairro.ilike.%${query}%`);
             }
             if (dataFiltro) {
-                rpcQuery = rpcQuery.eq('data_recebimento', dataFiltro);
+                selectQuery = selectQuery.eq('data_recebimento', dataFiltro);
             }
 
-            const { data, error } = await rpcQuery.order('id', { ascending: false });
+            const { data, error } = await selectQuery.order('id', { ascending: false }).limit(50);
 
             if (error) {
                 console.error("Erro na busca:", error);
@@ -513,13 +527,12 @@
                 return;
             }
 
-            ultimasFichasCarregadas = data || [];
-
             if (!data || data.length === 0) {
                 lista.innerHTML = '<p class="text-center text-xs text-gray-400">Nenhum registro encontrado.</p>';
                 return;
             }
 
+            lista.innerHTML = "";
             data.forEach(f => {
                 const tempo = calcularTempoAtendimentoTexto(f.data_recebimento, f.hora_recebimento, f.data_entrega, f.hora_entrega);
                 const parentesco = f.vinculo_responsavel === "Outro" ? f.outro_vinculo : f.vinculo_responsavel;
@@ -545,12 +558,24 @@
                         </p>
                     </div>
                     <div class="flex gap-1 justify-end">
-                        <button onclick='carregarFichaEdicao(${JSON.stringify(f)})' class="bg-amber-600 text-white px-2.5 py-1 rounded text-[10px] font-semibold cursor-pointer">Editar</button>
-                        <button onclick='gerarPDF(${JSON.stringify(f)})' class="bg-cv-red text-white px-2.5 py-1 rounded text-[10px] font-semibold cursor-pointer">PDF</button>
+                        <button onclick='carregarFichaEdicaoCompleta(${f.id})' class="bg-amber-600 text-white px-2.5 py-1 rounded text-[10px] font-semibold cursor-pointer">Editar</button>
+                        <button onclick='gerarPDFCompleto(${f.id})' class="bg-cv-red text-white px-2.5 py-1 rounded text-[10px] font-semibold cursor-pointer">PDF</button>
                     </div>
                 `;
                 lista.appendChild(div);
             });
+        }
+
+        // Buscar foto sob demanda para edição rápido
+        async function carregarFichaEdicaoCompleta(id) {
+            const { data } = await supabaseClient.from('fichas').select('*').eq('id', id).single();
+            if (data) carregarFichaEdicao(data);
+        }
+
+        // Buscar dados completos com foto para PDF individual
+        async function gerarPDFCompleto(id) {
+            const { data } = await supabaseClient.from('fichas').select('*').eq('id', id).single();
+            if (data) gerarPDF(data);
         }
 
         function carregarFichaEdicao(f) {
@@ -677,133 +702,152 @@
             doc.save(`Ficha_CVB_${f.numero || f.id}_${f.nome_crianca.replace(/\s+/g, '_')}.pdf`);
         }
 
-        // GERAR DASHBOARD / RELATÓRIO GERAL EM PDF
-        function gerarPDFDashboard() {
-            if (!ultimasFichasCarregadas || ultimasFichasCarregadas.length === 0) {
-                alert("Nenhuma ficha disponível para gerar o Dashboard PDF.");
-                return;
+        // DASHBOARD INDEPENDENTE (CONECTA DIRETO AO BANCO DE DADOS)
+        async function gerarPDFDashboard() {
+            const btnPdf = document.getElementById('btnPdfDashboard');
+            const textoOriginal = btnPdf.innerHTML;
+            btnPdf.innerHTML = "⌛ Gerando...";
+            btnPdf.disabled = true;
+
+            try {
+                // Consulta Direta Sem Depender do Filtro da Tela
+                const { data: todasFichas, error } = await supabaseClient
+                    .from('fichas')
+                    .select('id, numero, nome_crianca, nome_responsavel, bairro, data_recebimento, hora_recebimento, data_entrega, hora_entrega')
+                    .order('id', { ascending: false });
+
+                if (error || !todasFichas || todasFichas.length === 0) {
+                    alert("Não foi possível carregar os dados do banco para gerar o Dashboard.");
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                const total = todasFichas.length;
+                const entregues = todasFichas.filter(f => f.data_entrega).length;
+                const pendentes = total - entregues;
+
+                let somaMinutos = 0;
+                let qtdFinalizadas = 0;
+
+                todasFichas.forEach(f => {
+                    const min = calcularTempoAtendimentoMinutos(f.data_recebimento, f.hora_recebimento, f.data_entrega, f.hora_entrega);
+                    if (min !== null) {
+                        somaMinutos += min;
+                        qtdFinalizadas++;
+                    }
+                });
+
+                const mediaMinutos = qtdFinalizadas > 0 ? Math.round(somaMinutos / qtdFinalizadas) : 0;
+                const horasMedia = Math.floor(mediaMinutos / 60);
+                const restoMediaMin = mediaMinutos % 60;
+                const textoMedia = horasMedia > 0 ? `${horasMedia}h ${restoMediaMin}min` : `${restoMediaMin}min`;
+
+                // Cabeçalho
+                doc.setFillColor(214, 0, 28);
+                doc.rect(0, 0, 210, 25, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(15);
+                doc.setFont("helvetica", "bold");
+                doc.text("CRUZ VERMELHA BRASILEIRA - PARÁ", 105, 12, { align: "center" });
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "normal");
+                doc.text("PANORAMA GERAL E DASHBOARD DE ATENDIMENTOS", 105, 18, { align: "center" });
+
+                // Emissão
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(9);
+                doc.text(`Emissão Geral: ${new Date().toLocaleString('pt-BR')}`, 14, 32);
+
+                // Métricas Consolidadas
+                doc.setFillColor(240, 240, 240);
+                doc.roundedRect(14, 37, 42, 22, 2, 2, 'F');
+                doc.roundedRect(60, 37, 42, 22, 2, 2, 'F');
+                doc.roundedRect(106, 37, 42, 22, 2, 2, 'F');
+                doc.roundedRect(152, 37, 44, 22, 2, 2, 'F');
+
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(80, 80, 80);
+                doc.text("TOTAL FICHA", 20, 43);
+                doc.text("ENTREGUES", 67, 43);
+                doc.text("PENDENTES", 112, 43);
+                doc.text("TEMPO MÉDIO", 158, 43);
+
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.text(String(total), 35, 53, { align: "center" });
+                
+                doc.setTextColor(0, 128, 0);
+                doc.text(String(entregues), 81, 53, { align: "center" });
+
+                doc.setTextColor(200, 0, 0);
+                doc.text(String(pendentes), 127, 53, { align: "center" });
+
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(10);
+                doc.text(textoMedia, 174, 52, { align: "center" });
+
+                // Linha divisória
+                doc.setLineWidth(0.5);
+                doc.setDrawColor(200, 200, 200);
+                doc.line(14, 65, 196, 65);
+
+                // Tabela de Atendimentos Totais
+                doc.setFontSize(11);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(214, 0, 28);
+                doc.text("LISTAGEM CONSOLIDADA DO BANCO DE DADOS", 14, 73);
+
+                let y = 82;
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "bold");
+                doc.setFillColor(230, 230, 230);
+                doc.rect(14, 76, 182, 7, 'F');
+                doc.setTextColor(0, 0, 0);
+
+                doc.text("Nº", 16, 81);
+                doc.text("CRIANÇA", 30, 81);
+                doc.text("RESPONSÁVEL", 80, 81);
+                doc.text("BAIRRO", 125, 81);
+                doc.text("STATUS", 165, 81);
+
+                doc.setFont("helvetica", "normal");
+
+                todasFichas.forEach((f, idx) => {
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 20;
+                    }
+
+                    if (idx % 2 === 0) {
+                        doc.setFillColor(248, 248, 248);
+                        doc.rect(14, y - 4, 182, 6, 'F');
+                    }
+
+                    doc.text(String(f.numero || f.id), 16, y);
+                    doc.text(String(f.nome_crianca || '').substring(0, 25), 30, y);
+                    doc.text(String(f.nome_responsavel || '').substring(0, 22), 80, y);
+                    doc.text(String(f.bairro || '').substring(0, 20), 125, y);
+                    doc.text(f.data_entrega ? "Entregue" : "Pendente", 165, y);
+
+                    y += 7;
+                });
+
+                // Rodapé
+                doc.setFontSize(8);
+                doc.setTextColor(120, 120, 120);
+                doc.text("Panorama Geral Automatizado - Cruz Vermelha PA", 105, 285, { align: "center" });
+
+                doc.save(`Dashboard_Geral_CVB_${new Date().toISOString().split('T')[0]}.pdf`);
+            } catch (err) {
+                console.error("Erro no Dashboard:", err);
+                alert("Falha ao gerar o relatório geral.");
+            } finally {
+                btnPdf.innerHTML = textoOriginal;
+                btnPdf.disabled = false;
             }
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            const total = ultimasFichasCarregadas.length;
-            const entregues = ultimasFichasCarregadas.filter(f => f.data_entrega).length;
-            const pendentes = total - entregues;
-
-            let somaMinutos = 0;
-            let qtdFinalizadas = 0;
-
-            ultimasFichasCarregadas.forEach(f => {
-                const min = calcularTempoAtendimentoMinutos(f.data_recebimento, f.hora_recebimento, f.data_entrega, f.hora_entrega);
-                if (min !== null) {
-                    somaMinutos += min;
-                    qtdFinalizadas++;
-                }
-            });
-
-            const mediaMinutos = qtdFinalizadas > 0 ? Math.round(somaMinutos / qtdFinalizadas) : 0;
-            const horasMedia = Math.floor(mediaMinutos / 60);
-            const restoMediaMin = mediaMinutos % 60;
-            const textoMedia = horasMedia > 0 ? `${horasMedia}h ${restoMediaMin}min` : `${restoMediaMin}min`;
-
-            // Cabeçalho
-            doc.setFillColor(214, 0, 28);
-            doc.rect(0, 0, 210, 25, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(15);
-            doc.setFont("helvetica", "bold");
-            doc.text("CRUZ VERMELHA BRASILEIRA - PARÁ", 105, 12, { align: "center" });
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text("DASHBOARD & RELATÓRIO GERAL DE ATENDIMENTOS", 105, 18, { align: "center" });
-
-            // Data de Emissão
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(9);
-            doc.text(`Emissão: ${new Date().toLocaleString('pt-BR')}`, 14, 32);
-
-            // Caixas de Indicadores (Métricas)
-            doc.setFillColor(240, 240, 240);
-            doc.roundedRect(14, 37, 42, 22, 2, 2, 'F');
-            doc.roundedRect(60, 37, 42, 22, 2, 2, 'F');
-            doc.roundedRect(106, 37, 42, 22, 2, 2, 'F');
-            doc.roundedRect(152, 37, 44, 22, 2, 2, 'F');
-
-            doc.setFontSize(8);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(80, 80, 80);
-            doc.text("TOTAL FICHA", 20, 43);
-            doc.text("ENTREGUES", 67, 43);
-            doc.text("PENDENTES", 112, 43);
-            doc.text("TEMPO MÉDIO", 158, 43);
-
-            doc.setFontSize(14);
-            doc.setTextColor(0, 0, 0);
-            doc.text(String(total), 30, 53, { align: "center" });
-            
-            doc.setTextColor(0, 128, 0);
-            doc.text(String(entregues), 76, 53, { align: "center" });
-
-            doc.setTextColor(200, 0, 0);
-            doc.text(String(pendentes), 122, 53, { align: "center" });
-
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(10);
-            doc.text(textoMedia, 174, 52, { align: "center" });
-
-            // Linha divisória
-            doc.setLineWidth(0.5);
-            doc.setDrawColor(200, 200, 200);
-            doc.line(14, 65, 196, 65);
-
-            // Tabela de Fichas
-            doc.setFontSize(11);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(214, 0, 28);
-            doc.text("LISTAGEM DE ATENDIMENTOS REGISTRADOS", 14, 73);
-
-            let y = 82;
-            doc.setFontSize(8);
-            doc.setFont("helvetica", "bold");
-            doc.setFillColor(230, 230, 230);
-            doc.rect(14, 76, 182, 7, 'F');
-            doc.setTextColor(0, 0, 0);
-
-            doc.text("Nº", 16, 81);
-            doc.text("CRIANÇA", 30, 81);
-            doc.text("RESPONSÁVEL", 80, 81);
-            doc.text("BAIRRO", 125, 81);
-            doc.text("STATUS", 165, 81);
-
-            doc.setFont("helvetica", "normal");
-
-            ultimasFichasCarregadas.forEach((f, idx) => {
-                if (y > 270) {
-                    doc.addPage();
-                    y = 20;
-                }
-
-                if (idx % 2 === 0) {
-                    doc.setFillColor(248, 248, 248);
-                    doc.rect(14, y - 4, 182, 6, 'F');
-                }
-
-                doc.text(String(f.numero || f.id), 16, y);
-                doc.text(String(f.nome_crianca || '').substring(0, 25), 30, y);
-                doc.text(String(f.nome_responsavel || '').substring(0, 22), 80, y);
-                doc.text(String(f.bairro || '').substring(0, 20), 125, y);
-                doc.text(f.data_entrega ? "Entregue" : "Pendente", 165, y);
-
-                y += 7;
-            });
-
-            // Rodapé
-            doc.setFontSize(8);
-            doc.setTextColor(120, 120, 120);
-            doc.text("Relatório Consolidado do Sistema de Busca & Paradeiro - Cruz Vermelha PA", 105, 285, { align: "center" });
-
-            doc.save(`Dashboard_Busca_Paradeiro_CVB_${new Date().toISOString().split('T')[0]}.pdf`);
         }
     </script>
 </body>
