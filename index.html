@@ -410,7 +410,7 @@
             }
         });
 
-        // FUNÇÃO SAIR CORRIGIDA
+        // FUNÇÃO SAIR
         async function fazerLogout() {
             try {
                 await supabaseClient.auth.signOut();
@@ -509,7 +509,6 @@
             const lista = document.getElementById('listaFichas');
             lista.innerHTML = '<p class="text-center text-xs text-gray-400">Carregando registros...</p>';
 
-            // Traz apenas campos necessários para a lista (evita trafegar fotos pesadas no histórico rápido)
             let selectQuery = supabaseClient.from('fichas').select('id, numero, nome_crianca, nome_responsavel, vinculo_responsavel, outro_vinculo, data_recebimento, hora_recebimento, data_entrega, hora_entrega, geolocalizacao, bairro, idade, endereco, rg, telefone, responsavel, coordenador, posto, cidade');
 
             if (query.length >= 2) {
@@ -566,13 +565,11 @@
             });
         }
 
-        // Buscar foto sob demanda para edição rápido
         async function carregarFichaEdicaoCompleta(id) {
             const { data } = await supabaseClient.from('fichas').select('*').eq('id', id).single();
             if (data) carregarFichaEdicao(data);
         }
 
-        // Buscar dados completos com foto para PDF individual
         async function gerarPDFCompleto(id) {
             const { data } = await supabaseClient.from('fichas').select('*').eq('id', id).single();
             if (data) gerarPDF(data);
@@ -702,7 +699,7 @@
             doc.save(`Ficha_CVB_${f.numero || f.id}_${f.nome_crianca.replace(/\s+/g, '_')}.pdf`);
         }
 
-        // DASHBOARD INDEPENDENTE (CONECTA DIRETO AO BANCO DE DADOS)
+        // DASHBOARD INDEPENDENTE COM GRÁFICOS ILUSTRATIVOS NO PDF
         async function gerarPDFDashboard() {
             const btnPdf = document.getElementById('btnPdfDashboard');
             const textoOriginal = btnPdf.innerHTML;
@@ -710,7 +707,7 @@
             btnPdf.disabled = true;
 
             try {
-                // Consulta Direta Sem Depender do Filtro da Tela
+                // Consulta Direta ao Banco
                 const { data: todasFichas, error } = await supabaseClient
                     .from('fichas')
                     .select('id, numero, nome_crianca, nome_responsavel, bairro, data_recebimento, hora_recebimento, data_entrega, hora_entrega')
@@ -743,6 +740,7 @@
                 const horasMedia = Math.floor(mediaMinutos / 60);
                 const restoMediaMin = mediaMinutos % 60;
                 const textoMedia = horasMedia > 0 ? `${horasMedia}h ${restoMediaMin}min` : `${restoMediaMin}min`;
+                const taxaResolucao = total > 0 ? Math.round((entregues / total) * 100) : 0;
 
                 // Cabeçalho
                 doc.setFillColor(214, 0, 28);
@@ -753,14 +751,14 @@
                 doc.text("CRUZ VERMELHA BRASILEIRA - PARÁ", 105, 12, { align: "center" });
                 doc.setFontSize(10);
                 doc.setFont("helvetica", "normal");
-                doc.text("PANORAMA GERAL E DASHBOARD DE ATENDIMENTOS", 105, 18, { align: "center" });
+                doc.text("PANORAMA GERAL, GRÁFICOS & DASHBOARD DE ATENDIMENTOS", 105, 18, { align: "center" });
 
                 // Emissão
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(9);
                 doc.text(`Emissão Geral: ${new Date().toLocaleString('pt-BR')}`, 14, 32);
 
-                // Métricas Consolidadas
+                // Métricas Consolidadas (Cards)
                 doc.setFillColor(240, 240, 240);
                 doc.roundedRect(14, 37, 42, 22, 2, 2, 'F');
                 doc.roundedRect(60, 37, 42, 22, 2, 2, 'F');
@@ -789,29 +787,88 @@
                 doc.setFontSize(10);
                 doc.text(textoMedia, 174, 52, { align: "center" });
 
-                // Linha divisória
-                doc.setLineWidth(0.5);
-                doc.setDrawColor(200, 200, 200);
-                doc.line(14, 65, 196, 65);
-
-                // Tabela de Atendimentos Totais
-                doc.setFontSize(11);
+                // SEÇÃO DE GRÁFICOS VISUAIS EM VETOR NO PDF
+                doc.setFontSize(10);
                 doc.setFont("helvetica", "bold");
                 doc.setTextColor(214, 0, 28);
-                doc.text("LISTAGEM CONSOLIDADA DO BANCO DE DADOS", 14, 73);
+                doc.text("📊 ANÁLISE GRÁFICA DE STATUS & DESEMPENHO", 14, 68);
 
-                let y = 82;
+                // Fundo do container dos gráficos
+                doc.setFillColor(248, 249, 250);
+                doc.roundedRect(14, 72, 182, 35, 3, 3, 'F');
+                doc.setDrawColor(220, 220, 220);
+                doc.roundedRect(14, 72, 182, 35, 3, 3, 'S');
+
+                // 1. Gráfico de Barras Horizontais (Proporção de Casos)
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(60, 60, 60);
+                doc.text("Distribuição de Status dos Atendimentos", 20, 78);
+
+                const maxBarraWidth = 110;
+                const pctEntregues = total > 0 ? (entregues / total) : 0;
+                const pctPendentes = total > 0 ? (pendentes / total) : 0;
+
+                const widthEntregues = Math.max(2, Math.round(maxBarraWidth * pctEntregues));
+                const widthPendentes = Math.max(2, Math.round(maxBarraWidth * pctPendentes));
+
+                // Barra Entregues (Verde)
+                doc.setFillColor(34, 197, 94);
+                doc.rect(20, 82, widthEntregues, 8, 'F');
+                doc.setFontSize(7);
+                doc.setTextColor(255, 255, 255);
+                if (widthEntregues > 15) doc.text(`${Math.round(pctEntregues * 100)}%`, 22, 87.5);
+
+                // Barra Pendentes (Vermelha)
+                doc.setFillColor(239, 68, 68);
+                doc.rect(20, 93, widthPendentes, 8, 'F');
+                if (widthPendentes > 15) doc.text(`${Math.round(pctPendentes * 100)}%`, 22, 98.5);
+
+                // Legendas das Barras
+                doc.setFontSize(7.5);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(50, 50, 50);
+                doc.text(`Entregues (${entregues})`, 22 + widthEntregues, 87.5);
+                doc.text(`Pendentes (${pendentes})`, 22 + widthPendentes, 98.5);
+
+                // 2. Card Visual de Eficiência (Direita)
+                doc.setFillColor(255, 255, 255);
+                doc.roundedRect(140, 76, 50, 27, 2, 2, 'F');
+                doc.setDrawColor(230, 230, 230);
+                doc.roundedRect(140, 76, 50, 27, 2, 2, 'S');
+
+                doc.setFontSize(7.5);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(100, 100, 100);
+                doc.text("TAXA DE RESOLUÇÃO", 143, 82);
+
+                doc.setFontSize(15);
+                doc.setTextColor(34, 197, 94);
+                doc.text(`${taxaResolucao}%`, 143, 92);
+
+                doc.setFontSize(6.5);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(120, 120, 120);
+                doc.text(`Média: ${textoMedia} por caso`, 143, 98);
+
+                // Tabela de Atendimentos Totais
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(214, 0, 28);
+                doc.text("LISTAGEM CONSOLIDADA DO BANCO DE DADOS", 14, 115);
+
+                let y = 124;
                 doc.setFontSize(8);
                 doc.setFont("helvetica", "bold");
                 doc.setFillColor(230, 230, 230);
-                doc.rect(14, 76, 182, 7, 'F');
+                doc.rect(14, 118, 182, 7, 'F');
                 doc.setTextColor(0, 0, 0);
 
-                doc.text("Nº", 16, 81);
-                doc.text("CRIANÇA", 30, 81);
-                doc.text("RESPONSÁVEL", 80, 81);
-                doc.text("BAIRRO", 125, 81);
-                doc.text("STATUS", 165, 81);
+                doc.text("Nº", 16, 123);
+                doc.text("CRIANÇA", 30, 123);
+                doc.text("RESPONSÁVEL", 80, 123);
+                doc.text("BAIRRO", 125, 123);
+                doc.text("STATUS", 165, 123);
 
                 doc.setFont("helvetica", "normal");
 
