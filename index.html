@@ -30,7 +30,7 @@
 </head>
 <body class="bg-[#F5F5F5] text-[#202020] font-sans antialiased pb-10">
 
-    <!-- TELA DE LOGIN (LAYOUT ORIGINAL MANTIDO) -->
+    <!-- TELA DE LOGIN -->
     <div id="telaLogin" class="fixed inset-0 bg-[#121212] flex items-center justify-center z-50 p-4">
         <div class="bg-white p-6 rounded-xl shadow-2xl border border-gray-200 w-full max-w-sm text-center">
             <div class="w-16 h-16 bg-cv-red text-white flex items-center justify-center rounded-2xl mx-auto mb-3 text-3xl font-bold shadow-md">＋</div>
@@ -54,7 +54,7 @@
         </div>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL (EXIBIDO APÓS AUTENTICAÇÃO) -->
+    <!-- CONTEÚDO PRINCIPAL -->
     <div id="conteudoApp" class="hidden">
         <!-- CABEÇALHO -->
         <header class="bg-cv-red text-white p-4 text-center shadow-md sticky top-0 z-40 flex justify-between items-center">
@@ -224,11 +224,16 @@
                 </form>
             </section>
 
-            <!-- HISTÓRICO -->
+            <!-- HISTÓRICO E DASHBOARD -->
             <section class="bg-white p-5 rounded-xl shadow-sm border border-[#D9D9D9] mt-6">
-                <div class="flex items-center gap-2 mb-4 border-b pb-2 border-[#D9D9D9]">
-                    <span class="text-2xl">📋</span>
-                    <h2 class="text-lg font-bold text-cv-red">Histórico de Fichas</h2>
+                <div class="flex items-center justify-between mb-4 border-b pb-2 border-[#D9D9D9]">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">📋</span>
+                        <h2 class="text-lg font-bold text-cv-red">Histórico & Dashboard</h2>
+                    </div>
+                    <button onclick="gerarPDFDashboard()" class="bg-gray-800 hover:bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow cursor-pointer">
+                        📊 Gerar Dashboard PDF
+                    </button>
                 </div>
                 
                 <div class="space-y-2 mb-4 bg-gray-50 p-2.5 rounded border border-[#D9D9D9]">
@@ -261,8 +266,8 @@
         }
 
         let fotoBase64 = "";
+        let ultimasFichasCarregadas = [];
 
-        // VERIFICA SE JÁ EXISTE SESSÃO ATIVA
         window.addEventListener('DOMContentLoaded', async () => {
             if (!supabaseClient) return;
             const { data } = await supabaseClient.auth.getSession();
@@ -463,23 +468,26 @@
             }
         });
 
-        function calcularTempoAtendimento(dataRec, horaRec, dataEnt, horaEnt) {
-            if (!dataEnt || !horaEnt) return "Em atendimento";
+        function calcularTempoAtendimentoMinutos(dataRec, horaRec, dataEnt, horaEnt) {
+            if (!dataEnt || !horaEnt) return null;
             try {
                 const rec = new Date(`${dataRec}T${horaRec.substring(0,5)}`);
                 const ent = new Date(`${dataEnt}T${horaEnt.substring(0,5)}`);
                 const diffMs = ent - rec;
-                if (diffMs < 0) return "Tempo inválido";
-                
-                const totalMin = Math.floor(diffMs / 60000);
-                const horas = Math.floor(totalMin / 60);
-                const minutos = totalMin % 60;
-                
-                if (horas === 0) return `${minutos}min`;
-                return `${horas}h ${minutos}min`;
+                if (diffMs < 0) return null;
+                return Math.floor(diffMs / 60000);
             } catch (e) {
-                return "--";
+                return null;
             }
+        }
+
+        function calcularTempoAtendimentoTexto(dataRec, horaRec, dataEnt, horaEnt) {
+            const min = calcularTempoAtendimentoMinutos(dataRec, horaRec, dataEnt, horaEnt);
+            if (min === null) return "Em atendimento";
+            const horas = Math.floor(min / 60);
+            const restoMin = min % 60;
+            if (horas === 0) return `${restoMin}min`;
+            return `${horas}h ${restoMin}min`;
         }
 
         async function buscarFichas() {
@@ -505,13 +513,15 @@
                 return;
             }
 
+            ultimasFichasCarregadas = data || [];
+
             if (!data || data.length === 0) {
                 lista.innerHTML = '<p class="text-center text-xs text-gray-400">Nenhum registro encontrado.</p>';
                 return;
             }
 
             data.forEach(f => {
-                const tempo = calcularTempoAtendimento(f.data_recebimento, f.hora_recebimento, f.data_entrega, f.hora_entrega);
+                const tempo = calcularTempoAtendimentoTexto(f.data_recebimento, f.hora_recebimento, f.data_entrega, f.hora_entrega);
                 const parentesco = f.vinculo_responsavel === "Outro" ? f.outro_vinculo : f.vinculo_responsavel;
 
                 const div = document.createElement('div');
@@ -598,11 +608,11 @@
             resetarDataHoraCampos();
         }
 
+        // GERAR PDF INDIVIDUAL DE FICHA
         function gerarPDF(f) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Cabeçalho Vermelho
             doc.setFillColor(214, 0, 28);
             doc.rect(0, 0, 210, 25, 'F');
             doc.setTextColor(255, 255, 255);
@@ -613,7 +623,6 @@
             doc.setFont("helvetica", "normal");
             doc.text("FILIAL DO ESTADO DO PARÁ | FICHA DE BUSCA E PARADEIRO", 105, 18, { align: "center" });
 
-            // Identificação da Ficha
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(14);
             doc.setFont("helvetica", "bold");
@@ -666,6 +675,135 @@
             doc.text("Documento gerado digitalmente pelo Sistema de Busca & Paradeiro - Cruz Vermelha PA", 105, 285, { align: "center" });
 
             doc.save(`Ficha_CVB_${f.numero || f.id}_${f.nome_crianca.replace(/\s+/g, '_')}.pdf`);
+        }
+
+        // GERAR DASHBOARD / RELATÓRIO GERAL EM PDF
+        function gerarPDFDashboard() {
+            if (!ultimasFichasCarregadas || ultimasFichasCarregadas.length === 0) {
+                alert("Nenhuma ficha disponível para gerar o Dashboard PDF.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const total = ultimasFichasCarregadas.length;
+            const entregues = ultimasFichasCarregadas.filter(f => f.data_entrega).length;
+            const pendentes = total - entregues;
+
+            let somaMinutos = 0;
+            let qtdFinalizadas = 0;
+
+            ultimasFichasCarregadas.forEach(f => {
+                const min = calcularTempoAtendimentoMinutos(f.data_recebimento, f.hora_recebimento, f.data_entrega, f.hora_entrega);
+                if (min !== null) {
+                    somaMinutos += min;
+                    qtdFinalizadas++;
+                }
+            });
+
+            const mediaMinutos = qtdFinalizadas > 0 ? Math.round(somaMinutos / qtdFinalizadas) : 0;
+            const horasMedia = Math.floor(mediaMinutos / 60);
+            const restoMediaMin = mediaMinutos % 60;
+            const textoMedia = horasMedia > 0 ? `${horasMedia}h ${restoMediaMin}min` : `${restoMediaMin}min`;
+
+            // Cabeçalho
+            doc.setFillColor(214, 0, 28);
+            doc.rect(0, 0, 210, 25, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(15);
+            doc.setFont("helvetica", "bold");
+            doc.text("CRUZ VERMELHA BRASILEIRA - PARÁ", 105, 12, { align: "center" });
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text("DASHBOARD & RELATÓRIO GERAL DE ATENDIMENTOS", 105, 18, { align: "center" });
+
+            // Data de Emissão
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(9);
+            doc.text(`Emissão: ${new Date().toLocaleString('pt-BR')}`, 14, 32);
+
+            // Caixas de Indicadores (Métricas)
+            doc.setFillColor(240, 240, 240);
+            doc.roundedRect(14, 37, 42, 22, 2, 2, 'F');
+            doc.roundedRect(60, 37, 42, 22, 2, 2, 'F');
+            doc.roundedRect(106, 37, 42, 22, 2, 2, 'F');
+            doc.roundedRect(152, 37, 44, 22, 2, 2, 'F');
+
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(80, 80, 80);
+            doc.text("TOTAL FICHA", 20, 43);
+            doc.text("ENTREGUES", 67, 43);
+            doc.text("PENDENTES", 112, 43);
+            doc.text("TEMPO MÉDIO", 158, 43);
+
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text(String(total), 30, 53, { align: "center" });
+            
+            doc.setTextColor(0, 128, 0);
+            doc.text(String(entregues), 76, 53, { align: "center" });
+
+            doc.setTextColor(200, 0, 0);
+            doc.text(String(pendentes), 122, 53, { align: "center" });
+
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.text(textoMedia, 174, 52, { align: "center" });
+
+            // Linha divisória
+            doc.setLineWidth(0.5);
+            doc.setDrawColor(200, 200, 200);
+            doc.line(14, 65, 196, 65);
+
+            // Tabela de Fichas
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(214, 0, 28);
+            doc.text("LISTAGEM DE ATENDIMENTOS REGISTRADOS", 14, 73);
+
+            let y = 82;
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            doc.setFillColor(230, 230, 230);
+            doc.rect(14, 76, 182, 7, 'F');
+            doc.setTextColor(0, 0, 0);
+
+            doc.text("Nº", 16, 81);
+            doc.text("CRIANÇA", 30, 81);
+            doc.text("RESPONSÁVEL", 80, 81);
+            doc.text("BAIRRO", 125, 81);
+            doc.text("STATUS", 165, 81);
+
+            doc.setFont("helvetica", "normal");
+
+            ultimasFichasCarregadas.forEach((f, idx) => {
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+
+                if (idx % 2 === 0) {
+                    doc.setFillColor(248, 248, 248);
+                    doc.rect(14, y - 4, 182, 6, 'F');
+                }
+
+                doc.text(String(f.numero || f.id), 16, y);
+                doc.text(String(f.nome_crianca || '').substring(0, 25), 30, y);
+                doc.text(String(f.nome_responsavel || '').substring(0, 22), 80, y);
+                doc.text(String(f.bairro || '').substring(0, 20), 125, y);
+                doc.text(f.data_entrega ? "Entregue" : "Pendente", 165, y);
+
+                y += 7;
+            });
+
+            // Rodapé
+            doc.setFontSize(8);
+            doc.setTextColor(120, 120, 120);
+            doc.text("Relatório Consolidado do Sistema de Busca & Paradeiro - Cruz Vermelha PA", 105, 285, { align: "center" });
+
+            doc.save(`Dashboard_Busca_Paradeiro_CVB_${new Date().toISOString().split('T')[0]}.pdf`);
         }
     </script>
 </body>
